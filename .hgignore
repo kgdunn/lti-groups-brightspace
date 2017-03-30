@@ -1,0 +1,5 @@
+.*\.pyc
+groups.wpr
+groups.wpu
+local_settings.py
+logfile*\.*
