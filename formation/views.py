@@ -35,7 +35,7 @@ def process_action(request, user_ID):
         return HttpResponse('Invalid')
     action = request.POST.get('action', '').strip()
     group_id = request.POST.get('group_id', '0').strip()
-    gfp = request.POST.get('gfp', '').strip()
+    gfp = request.POST.get('gfp', '0').strip()
 
     # Now hit the database:
     learner = Person.objects.filter(user_ID=user_ID)
