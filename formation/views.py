@@ -311,7 +311,7 @@ def index(request):
         
             
     if request.method != 'POST' and (len(request.GET.keys())==0):
-        return HttpResponse("You have reached the Peer Review LTI component.")
+        return HttpResponse("This is the Brightspace Groups LTI component.")
 
     person_or_error, course, gfp = starting_point(request)
 

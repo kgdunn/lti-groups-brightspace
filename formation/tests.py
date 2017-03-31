@@ -9,7 +9,7 @@ class SpeedTestCase(TestCase):
     """
     To test how fast students can enrol themselves in a database"""
     def setUp(self):
-        
+        start = datetime.datetime.now()
         course = Course.objects.create(name='Testing', label='abc123')
         
         n_people = 200
@@ -36,6 +36,8 @@ class SpeedTestCase(TestCase):
                         description = 'Group Description {0}'.format(idx),
                         capacity = random.randint(20, 50), order=idx)
         groups.append(group)
+        print('Time taken to create {0} users in {1} groups: {2}'.format(\
+                n_people, n_groups, datetime.datetime.now() - start))
                         
             
      

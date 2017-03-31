@@ -1,6 +1,6 @@
 Integrate into Brightspace
 Add tests
-
+Make the logfile rotatable
 Add logging to display to admin
 Add admin display summary, with links to show the students listed in a group
 Admin view to process and uploaded CSV file
@@ -13,4 +13,26 @@ Setting up on the server
 * HTTPS secured URL https://lti.tudelft.nl
 * Running Python >= 3.5
 * Running Django >= 1.10
-* 
+* Apache server
+* WSGI settings configured in Apache
+* Postgresql database
+* An email address to email from
+
+}
+# To recreate website:
+# -----------
+# su postgres
+# psql 
+# DROP DATABASE django_lti_groups_db;
+# create database django_lti_groups_db; 
+# create user django_lti_groups_user;
+# ALTER USER django_lti_groups_user WITH PASSWORD '';
+# grant all on database django_lti_groups_db to django_lti_groups_user;
+# ALTER ROLE django_lti_groups_user SET client_encoding TO 'utf8';
+# ALTER ROLE django_lti_groups_user SET default_transaction_isolation TO 'read committed';
+# ALTER ROLE django_lti_groups_user SET timezone TO 'UTC';
+# \q
+#---
+# ./manage.py migrate
+# ./manage.py createsuperuser
+# chmod 777 logfile.txt
