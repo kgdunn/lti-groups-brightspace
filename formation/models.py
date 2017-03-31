@@ -82,7 +82,7 @@ class Group_Formation_Process(models.Model):
                    'people enrolled in their groups.'))
     
     has_been_pushed = models.BooleanField(default=False)
-    push_dt = models.DateTimeField(editable=False,
+    push_dt = models.DateTimeField(editable=False, auto_now_add=True,
         verbose_name='When was the group formation pushed to Brightspace?')
     
     # Dates and times

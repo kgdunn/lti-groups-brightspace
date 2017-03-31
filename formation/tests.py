@@ -26,7 +26,6 @@ class SpeedTestCase(TestCase):
                                             course=course,
                                             title='TestingGFP', 
                                             allow_multi_enrol=True,
-                                            push_dt=timezone.now(),
                                                      )
 
         n_groups = 40
