@@ -7,6 +7,7 @@ from django.conf import settings
 # Our imports
 from .models import Person, Course
 from .models import Group_Formation_Process, Group, Enrolled, Allowed
+from stats.views import create_hit
 
 # Python imports
 from collections import namedtuple, defaultdict
@@ -68,8 +69,6 @@ def process_action(request, user_ID):
     if action == 'group-enrol':
         success_message = 'Successfully enrolled'
         
-        # TODO: Do logging here
-        
         if Enrolled.objects.filter(group=group, is_enrolled=True).count() >= \
                                                              group.capacity:
             # We cannot enrol beyond the group capacity 
@@ -79,6 +78,10 @@ def process_action(request, user_ID):
         if not(gfp.allow_multi_enrol):
             # First remove the user from all other enrollments:
             all_enrols = Enrolled.objects.filter(person=learner, group__gfp=gfp)
+            for enrolled in all_enrols:
+                if enrolled.is_enrolled:
+                    create_hit(request, item=gfp, action='leave', user=learner, 
+                        other_info='group.id={0}'.format(enrolled.group.id))                
             all_enrols.update(is_enrolled=False)
 
                         
@@ -86,6 +89,9 @@ def process_action(request, user_ID):
                                                      group=group)            
         enrolled.is_enrolled = True
         enrolled.save()
+        
+        create_hit(request, item=gfp, action='join', 
+                   user=learner, other_info='group.id={0}'.format(group.id))        
         return HttpResponse(success_message) 
     
     if action == 'group-unenrol':
@@ -94,9 +100,13 @@ def process_action(request, user_ID):
                                                      group=group)
         enrolled.is_enrolled = False
         enrolled.save()
+        create_hit(request, item=gfp, action='leave', 
+                   user=learner, other_info='group.id={0}'.format(group.id))        
         return HttpResponse(success_message)  
     
     if action == 'group-add-waitlist':
+        create_hit(request, item=gfp, action='waitlist-add', 
+                   user=learner, other_info='group.id={0}'.format(group.id))        
         return HttpResponse('This is not supported yet.')
         
 
@@ -121,6 +131,9 @@ def get_create_student(request, course, gfp):
                                                    role=role)
 
     if newbie:
+        create_hit(request, item=course, action='create', 
+                       user=learner, other_info='gfp.id={0}'.format(gfp.id),
+                       other_info_id=gfp.id)               
         learner.display_name = display_name
         learner.save()
         logger.info('New learner: {0} [{1}]'.format(learner.display_name,
@@ -182,7 +195,9 @@ def starting_point(request):
         
 
     person = get_create_student(request, course, gfp)
+ 
     if person:
+            
         return person, course, gfp
     else:
         return (HttpResponse(("You are not registered in this course.")), None,
@@ -306,7 +321,7 @@ def index(request):
     learner = person_or_error
     logger.debug('Learner entering: {0}'.format(learner))
 
-    #create_hit(request, item=learner, event='login', user=learner,)
+
     
     # Do the work here; Return the HTTP Response
     if learner.role == 'Student':

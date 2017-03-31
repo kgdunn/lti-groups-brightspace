@@ -1,0 +1,16 @@
+Integrate into Brightspace
+Add tests
+
+Add logging to display to admin
+Add admin display summary, with links to show the students listed in a group
+Admin view to process and uploaded CSV file
+Admin: download CSV view
+
+
+=====
+Setting up on the server
+
+* HTTPS secured URL https://lti.tudelft.nl
+* Running Python >= 3.5
+* Running Django >= 1.10
+* 
