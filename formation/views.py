@@ -280,7 +280,8 @@ def add_enrol_unenrol_links(groups, learner=None, is_enrolled_already=False):
             group.waitlist_link = False
             
         
-
+from django.views.decorators.csrf import ensure_csrf_cookie
+@ensure_csrf_cookie
 def index(request):
     """
     The main entry point
