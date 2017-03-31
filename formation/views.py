@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 
 development = settings.DEBUG
 
+@xframe_options_exempt # Required for integration into Brightspace
 def process_action(request, user_ID):
     """
     Ensures the learner is actually in the group_formation_process: how?
