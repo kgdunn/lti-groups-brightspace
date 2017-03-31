@@ -292,6 +292,7 @@ def index(request):
     """
     The main entry point
     """
+    logger.debug(str(request.POST))
     if development:
         # Creates a fake ``request`` that is used during development/debugging
         original_request = request
