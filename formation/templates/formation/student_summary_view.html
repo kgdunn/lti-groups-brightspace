@@ -1,0 +1,59 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script language="javascript" type="text/javascript">
+
+
+$(document).on('click', "a.group-click", function() {
+    var postdata = {'csrfmiddlewaretoken': '{{ csrf_token }}',
+                    'action': $(this).attr('class').replace('group-click ', ''),
+                    'group_id': $(this).attr("id"),
+                    'gfp': {{gfp.id}},};
+    $.ajax({
+        method: "POST",
+        url: '/action/{{learner.user_ID}}/',
+        data: postdata,
+        cache: false,
+        context: $(this),
+        dataType: 'html'
+    })
+    .always(function(html_response, postdata) {
+        
+        $('#group-extra-info-XHR').html(html_response);
+        setTimeout(function() { location.reload(); }, 500);
+    });
+});
+</script>
+
+<div id="group-extra-info-XHR">&nbsp;</div>
+
+<table class="group-summary" >
+<thead>
+<tr><th>Name</th>
+    <th>Description</th>
+    <th>Enrollements</th>
+    <th>Add yourself</th>
+    <th>Unenrol yourself</th>
+    <th>Add to waitlist</th>
+</tr>
+</thead>
+<tbody>
+{% for group in groups %}
+    <tr class="group-{% cycle 'odd' 'even' %}">
+        <td>{{group.name}}</td>
+        <td>{{group.description}}</td>
+        <td>{{group.n_enrolled}} / {{group.capacity}}</td>
+        <td>{% if group.enrol_link %}
+               <a href="#" class="group-click group-enrol" id="{{group.id}}">Enrol</a>
+                 {%if is_enrolled_already and not gfp.allow_multi_enrol%}*{%endif%}
+            {%else%}
+                
+            {% endif %}</td>
+        
+        <td>{% if group.unenrol_link %}<a href="#" class="group-click group-unenrol" id="{{group.id}}">Unenrol</a>{% endif %}</td>
+            
+        <td>{% if group.waitlist_link %}<a href="#" class="group-click group-add-waitlist" id="{{group.id}}">Add</a>{% endif %}</td>
+    </tr>
+{% endfor %}{# for group in groups #}
+</tbody>
+</table>
+<hr>
+{%if is_enrolled_already and not gfp.allow_multi_enrol%}* If you click to enrol in another group, you will automatically be unenrolled from the other.{%endif%}
