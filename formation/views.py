@@ -1,3 +1,4 @@
+from django import __version__
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt
@@ -15,9 +16,11 @@ from collections import namedtuple, defaultdict
 # Logging
 import logging
 logger = logging.getLogger(__name__)
+logger.debug('Django version ' + __version__)
 
 development = settings.DEBUG
 
+@csrf_exempt
 @xframe_options_exempt # Required for integration into Brightspace
 def process_action(request, user_ID):
     """
@@ -284,6 +287,7 @@ def add_enrol_unenrol_links(groups, learner=None, is_enrolled_already=False):
             
 @csrf_exempt           # The entry page is exempt, the others are not.
 @xframe_options_exempt # Required for integration into Brightspace
+@ensure_csrf_cookie    # But set the CSRF cookie for later use
 def index(request):
     """
     The main entry point
