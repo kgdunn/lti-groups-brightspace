@@ -18,6 +18,9 @@ Setting up on the server
 * Postgresql database
 * An email address to email from
 
+Refused to display 'https://lti.connectmv.com/' in a frame because it set multiple 'X-Frame-Options' headers with conflicting values ('SAMEORIGIN, ALLOWALL'). Falling back to 'deny'.
+lti.connectmv.com/ Failed to load resource: net::ERR_BLOCKED_BY_RESPONSE
+
 }
 # To recreate website:
 # -----------

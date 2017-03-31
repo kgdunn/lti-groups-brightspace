@@ -281,7 +281,8 @@ def add_enrol_unenrol_links(groups, learner=None, is_enrolled_already=False):
             
         
             
-@csrf_exempt 
+@csrf_exempt           # The entry page is exempt, the others are not.
+@xframe_options_exempt # Required for integration into Brightspace
 def index(request):
     """
     The main entry point
