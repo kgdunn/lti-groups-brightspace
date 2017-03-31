@@ -34,7 +34,7 @@ def process_action(request, user_ID):
     if request.GET:
         return HttpResponse('Invalid')
     action = request.POST.get('action', '').strip()
-    group_id = request.POST.get('group_id', '').strip()
+    group_id = request.POST.get('group_id', '0').strip()
     gfp = request.POST.get('gfp', '').strip()
 
     # Now hit the database:
