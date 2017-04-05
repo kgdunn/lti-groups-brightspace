@@ -1,4 +1,5 @@
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+{% extends "formation/base.html" %}
+{% block header %}
 
 <script language="javascript" type="text/javascript">
 $(document).on('click', "a.group-click", function() {
@@ -15,44 +16,73 @@ $(document).on('click', "a.group-click", function() {
         dataType: 'html'
     })
     .always(function(html_response, postdata) {
-        
         $('#group-extra-info-XHR').html(html_response);
         setTimeout(function() { location.reload(); }, 500);
     });
+    
+    
+    
+    
+});
+$( document ).ready(function() {
+    {% if hide_columns.description %}
+        $('td:nth-child(2),th:nth-child(2)').hide();
+    {% endif %}
+    {% if hide_columns.leave_group %}
+        $('td:nth-child(5),th:nth-child(5)').hide();
+    {% endif %}
+    {% if hide_columns.join_waitlist %}
+        $('td:nth-child(6),th:nth-child(6)').hide();
+    {% endif %}
 });
 </script>
 
+
+{% endblock %}{# header #}
+
+
+{% block content %}
 <div id="group-extra-info-XHR">&nbsp;</div>
 
 <table class="group-summary" >
+
 <thead>
-<tr><th>Name</th>
+<tr class="group-table-header">
+    <th>Group name<span class="group-row-capacity">[Capacity]</span></th>
     <th>Description</th>
-    <th>Enrollements</th>
+    <th>Spaces free</th>
     <th>Add yourself</th>
     <th>Leave group</th>
-    <th>Add to waitlist</th>
+    <th>Join waitlist</th>
 </tr>
 </thead>
 <tbody>
 {% for group in groups %}
     <tr class="group-{% cycle 'odd' 'even' %}">
-        <td>{{group.name}}</td>
+        <td>{{group.name}} <span class="group-row-capacity">[{{group.capacity}} space{{group.capacity|pluralize}}]</span></td>
         <td>{{group.description}}</td>
-        <td>{{group.n_enrolled}} / {{group.capacity}}</td>
-        <td>{% if group.enrol_link %}
+        <td class="group-col-center">{{group.n_free}}</td>
+        <td class="group-col-center">
+            {% if group.enrol_link %}
                <a href="#" class="group-click group-enrol" id="{{group.id}}">Join</a>
                  {%if is_enrolled_already and not gfp.allow_multi_enrol%}*{%endif%}
             {%else%}
                 
             {% endif %}</td>
         
-        <td>{% if group.unenrol_link %}<a href="#" class="group-click group-unenrol" id="{{group.id}}">Leave</a>{% endif %}</td>
+        <td class="group-col-center">
+            {% if group.unenrol_link %}<a href="#" class="group-click group-unenrol" id="{{group.id}}">Leave</a>{% endif %}</td>
             
-        <td>{% if group.waitlist_link %}<a href="#" class="group-click group-add-waitlist" id="{{group.id}}">Add myself to waitlist</a>{% endif %}</td>
+        <td class="group-col-center">
+            {% if group.waitlist_link %}<a href="#" class="group-click group-add-waitlist" id="{{group.id}}">Add myself to waitlist</a>{% endif %}</td>
     </tr>
 {% endfor %}{# for group in groups #}
 </tbody>
 </table>
 <hr>
 {%if is_enrolled_already and not gfp.allow_multi_enrol%}* If you click to join another group, you will automatically leave the other.{%endif%}
+
+{% endblock %} {# content#}
+
+{% block footer %}
+{% endblock %}

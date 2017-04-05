@@ -77,7 +77,7 @@ def process_action(request, user_ID):
                                                              group.capacity:
             # We cannot enrol beyond the group capacity 
             # The link is not shown, but this precaution is here also.
-            return HttpResponse('Invalid')     
+            return HttpResponse('The group has reached the maximum capacity')     
                 
         if not(gfp.allow_multi_enrol):
             # First remove the user from all other enrollments:
@@ -212,7 +212,8 @@ def add_enrollment_summary(groups, learner=None):
     """
     Adds the group enrollment summary for the QuerySet of ``groups``. Modifies
     the instances by adding new field(s):
-        * n_enrolled     : number of students in this course enrolled in group
+        * n_enrolled     : number of students from course enrolled in this group
+        * n_free         : this is what students want: number of free spots
         * is_enrolled    : True or False, indicating if the learner is enrolled
         
     The instances in the QuerySet are never saved to the database, but will
@@ -225,6 +226,9 @@ def add_enrollment_summary(groups, learner=None):
     for group in groups:
         enrolleds = Enrolled.objects.filter(group=group, is_enrolled=True)
         group.n_enrolled = enrolleds.count()
+        # You must threshold at zero, incase a manual override is done, and
+        # then we don't want to show "-2 spaces free", for example.
+        group.n_free = max(0, group.capacity - group.n_enrolled)
         group.is_enrolled = 0
         if learner and group.n_enrolled:
             group.is_enrolled = enrolleds.filter(person=learner).count()
@@ -261,15 +265,25 @@ def add_enrol_unenrol_links(groups, learner=None, is_enrolled_already=False):
         
     The instances in the QuerySet are never saved to the database, but will
     have added information that can be rendered in the templates.    
+    
+    Also, returns a dictionary of columns to hide in the student view.
     """
+    # Assume we will hide all these columns, unless otherwise specified
+    hide_description = True
+    hide_join_waitlist = True
+    hide_leave_group = True
+    
     for group in groups:
+        if group.description:
+            hide_description = False
         group.enrol_link = False
         group.unenrol_link = True
         if group.is_enrolled:         # learner already enrolled (rows 2 and 4)
-            pass                      # then the defaults suffice
+            hide_leave_group = False  # then the defaults suffice
         else:
             group.enrol_link = True   # rows 1 and 3
             group.unenrol_link = False
+             
           
         # Rows 5, 6, 7 and 8 in the above table trump all conditions:
         if Enrolled.objects.filter(group=group, is_enrolled=True).count()\
@@ -279,9 +293,14 @@ def add_enrol_unenrol_links(groups, learner=None, is_enrolled_already=False):
             if group.is_enrolled:
                 group.waitlist_link = False
                 group.unenrol_link = True
+                hide_leave_group = False
         else:
             # Rows 5, 6, 7 and 8 for column C and y3
             group.waitlist_link = False
+            
+    return {'description': hide_description,
+            'join_waitlist': hide_join_waitlist,
+            'leave_group': hide_leave_group}
             
         
             
@@ -329,17 +348,20 @@ def index(request):
     learner = person_or_error
     logger.debug('Learner entering: {0}'.format(learner))
 
-
-    
+   
     # Do the work here; Return the HTTP Response
     if learner.role == 'Student':
-        groups = Group.objects.filter(gfp=gfp)
+        # Get them alphabetically, and then within the fixed order specified
+        groups = Group.objects.filter(gfp=gfp).order_by('name').order_by('order')
         is_enrolled_already = add_enrollment_summary(groups, learner)
-        add_enrol_unenrol_links(groups, learner, is_enrolled_already)
+        hide_columns = add_enrol_unenrol_links(groups, learner, 
+                                               is_enrolled_already)
+        
         ctx = {'groups': groups,
                'learner': learner,
                'gfp': gfp,
                'is_enrolled_already': is_enrolled_already,
+               'hide_columns': hide_columns,
                }
 
         return render(original_request, 
