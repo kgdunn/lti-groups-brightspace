@@ -1,18 +1,19 @@
-Race condition?
+
+Students must manually unenroll, then re-enroll. Not automated unenroll/reenrol
 One student enrolls, then another, with in the same approximate time. 
 Group capacity has only 1 spot left. Who wins?
 
-Students must manually unenroll, then re-enroll. Not automated.
-Show waitlist column only if there is a group at capacity
+Check what happens if Admin role person uses "View as Student"
 
 
 Make it prettier: student version
  * iconic?
  * check on mobile?
+ * give feedback on what has happened in XHR
 
-Admin view: 1. Export CSV
-            2. Export Log
-            3. Table 
+Admin view: 1. Export to CSV
+            2. Export the Log
+            3. Table display of enrollments
 
 Add logging to display to admin
 Add admin display summary, with links to show the students listed in a group
@@ -31,8 +32,6 @@ Setting up on the server
 * Postgresql database
 * An email address to email from
 
-
-}
 # To recreate website:
 # -----------
 # su postgres

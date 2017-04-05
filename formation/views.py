@@ -6,12 +6,16 @@ from django.views.decorators.clickjacking import xframe_options_exempt
 from django.conf import settings
 
 # Our imports
-from .models import Person, Course
-from .models import Group_Formation_Process, Group, Enrolled, Allowed
-from stats.views import create_hit
+from .models import Person, Course, Group_Formation_Process
+from .models import Group, Enrolled, Allowed, Tracking
+from stats.views import create_hit, get_IP_address
 
 # Python imports
 from collections import namedtuple, defaultdict
+import datetime
+import json
+import csv
+
 
 # Logging
 import logging
@@ -20,6 +24,23 @@ logger.debug('Django version ' + __version__)
 
 development = settings.DEBUG
 
+ 
+def track_log(request, action, gfp, group, person):
+    """Tracks in the logs the person and their actions for a given group.
+    """
+    ip_address = get_IP_address(request)
+    try:
+        tracked = Tracking(ip_address=ip_address,
+                           action=action,
+                           gfp=gfp,
+                           group=group,
+                           person=person,                          
+                        )
+        tracked.save()
+    except Exception:
+        pass
+    
+    
 @csrf_exempt
 @xframe_options_exempt # Required for integration into Brightspace
 def process_action(request, user_ID):
@@ -47,17 +68,26 @@ def process_action(request, user_ID):
     else:
         learner = learner[0]
     
+
+    gfp = Group_Formation_Process.objects.filter(id=gfp)
+    if not(gfp):
+        return HttpResponse('Invalid') 
+    else:
+        gfp = gfp[0]
+        
+        
+    # Now we can split off for students vs. instructors, to keep this function
+    # overzichtelijk
+    if learner.role == 'Admin':
+        return admin_action_process(request, action, gfp)
+            
+            
     group = Group.objects.filter(id=group_id)
     if not(group):
         return HttpResponse('Invalid')
     else:
         group = group[0]
     
-    gfp = Group_Formation_Process.objects.filter(id=gfp)
-    if not(gfp):
-        return HttpResponse('Invalid') 
-    else:
-        gfp = gfp[0]
     
     if group.gfp.id != gfp.id:
         return HttpResponse('Invalid') 
@@ -71,7 +101,7 @@ def process_action(request, user_ID):
     # allowed to take an action now.
     
     if action == 'group-enrol':
-        success_message = 'Successfully enrolled'
+        success_message = "Successfully enrolled"
         
         if Enrolled.objects.filter(group=group, is_enrolled=True).count() >= \
                                                              group.capacity:
@@ -84,8 +114,9 @@ def process_action(request, user_ID):
             all_enrols = Enrolled.objects.filter(person=learner, group__gfp=gfp)
             for enrolled in all_enrols:
                 if enrolled.is_enrolled:
-                    create_hit(request, item=gfp, action='leave', user=learner, 
-                        other_info='group.id={0}'.format(enrolled.group.id))                
+                    track_log(request, action='leave', gfp=gfp, 
+                              group=enrolled.group, person=learner)
+                    
             all_enrols.update(is_enrolled=False)
 
                         
@@ -93,9 +124,9 @@ def process_action(request, user_ID):
                                                      group=group)            
         enrolled.is_enrolled = True
         enrolled.save()
-        
-        create_hit(request, item=gfp, action='join', 
-                   user=learner, other_info='group.id={0}'.format(group.id))        
+        track_log(request, action='join', gfp=gfp, group=group,
+                  person=learner)        
+                
         return HttpResponse(success_message) 
     
     if action == 'group-unenrol':
@@ -104,15 +135,52 @@ def process_action(request, user_ID):
                                                      group=group)
         enrolled.is_enrolled = False
         enrolled.save()
-        create_hit(request, item=gfp, action='leave', 
-                   user=learner, other_info='group.id={0}'.format(group.id))        
+        track_log(request, action='leave', gfp=gfp, group=group,
+                  person=learner)         
+
         return HttpResponse(success_message)  
     
     if action == 'group-add-waitlist':
-        create_hit(request, item=gfp, action='waitlist-add', 
-                   user=learner, other_info='group.id={0}'.format(group.id))        
+        track_log(request, action='waitlist-add', gfp=gfp, group=group,
+                person=learner)         
+                
         return HttpResponse('This is not supported yet.')
         
+def admin_action_process(request, action, gfp):
+    """
+    The administrator can click in the user-interface to take certain 
+    ``action``s for a given ``gfp``.
+    
+    Must return an HttpResponse object here.
+    """
+    if action =='group-enrollment-log':
+        # Gets a log history for display in the browser. Returns a JSON object.
+        
+        log = []
+        log_items = Tracking.objects.filter(gfp=gfp).order_by('-datetime')
+        for item in log_items:
+            log.append([item.datetime.strftime('%d/%B/%Y %H:%M:%S.%f'), 
+                        item.person.email, item.action, item.group.name])
+            
+        return HttpResponse(json.dumps(log))
+    
+    elif action =='group-CSV-download':
+        response = HttpResponse(content_type='text/csv')
+        filename = '{0}--{1}.csv'.format(gfp.LTI_id,
+                                         datetime.datetime.now().\
+                                               strftime('%d-%B-%Y-%H-%M-%S'))
+        response['Content-Disposition'] = 'attachment; filename="{0}"'.format(
+                                                                       filename)
+        writer = csv.writer(response)
+        writer.writerow(['Student email', 'Group name', 'Last action taken'])
+        return response
+    
+
+    elif action == 'group-push-enrollment':
+        return HttpResponse('GROUP PUSH TODO')
+    return HttpResponse('This is not supported yet.')
+
+  
 
 def get_create_student(request, course, gfp):
     """
@@ -123,11 +191,11 @@ def get_create_student(request, course, gfp):
     email = request.POST.get('lis_person_contact_email_primary', '')
     display_name = request.POST.get('lis_person_name_full', '')
     user_ID = request.POST.get('user_id', '')
-    role = request.POST.get('roles', '')
+    POST_role = request.POST.get('roles', '')
     
     # You can also use: request.POST['ext_d2l_role'] in Brightspace
     role = 'Student'
-    if 'Instructor' in role:
+    if 'Instructor' in POST_role:
         role = 'Admin'
     
     learner, newbie = Person.objects.get_or_create(email=email,
@@ -240,8 +308,10 @@ def add_enrollment_summary(groups, learner=None):
 
 def add_enrol_unenrol_links(groups, learner=None, is_enrolled_already=False):
     """
-    Adds the links to enrol and unenrol to the QuerySet of ``groups``. Modifies
-    the instances by adding new field(s):
+    Adds the links to enrol and unenrol to the QuerySet of ``groups``. This 
+    is only called if the student is accessing the page.
+    
+    Modifies the instances by adding new field(s):
         * y1=enrol_link     : click this link and the student will be enrolled
         * y2=unenrol_link   : click this link and the student will be unenrolled
         * y3=waitlist_link  : click this link and the student is waitlisted 
@@ -325,11 +395,13 @@ def index(request):
                          # ID is provided. The course and this code provide
                          # a unique way to identify the course.
                         'resource_link_id': '24426106',
-                        'roles': [(u'urn:lti:instrole:ims/lis/Student,Student,'
-                                   'urn:lti:instrole:ims/lis/Learner,Learner')],
-                        'lis_person_contact_email_primary': 'kgdunn@gmail.com1',
+                        #'roles': (u'urn:lti:instrole:ims/lis/Instructor,Admin,'
+                        #           'urn:lti:instrole:ims/lis/Admin,Admin'),
+                        'roles': u'Instructor',
+                        #'roles': u'Student',
+                        'lis_person_contact_email_primary': 'kgdunn@gmail.com2',
                         'lis_person_name_full': 'Kevin Dunn',
-                        'user_id': '01a7b8a9-f1c9-430d-b7d9-eca804cbde10_701',
+                        'user_id': '01a7b8a9-f1c9-430d-b7d9-eca804cbde10_702',
                         }
         
         request.META = {'REMOTE_ADDR': '127.0.0.1'}
@@ -368,11 +440,12 @@ def index(request):
                       'formation/student_summary_view.html', ctx)        
     
     elif learner.role == 'Admin':
-        groups = Group.objects.filter.all(gfp=gfp)
-        enrolleds = get_enrollment_summary(gfp=gfp)
+        groups = Group.objects.filter(gfp=gfp).order_by('name').order_by('order')
+        _ = add_enrollment_summary(groups, learner)
         ctx = {'groups': groups,
-               'enrolleds': enrolleds,
+               'learner': learner,
+               'gfp': gfp,
                    }
         return render(original_request, 
-                      'formation/admin_summary_view.html', ctx)          
-        
+                      'formation/instructor_summary_view.html', ctx)          
+    

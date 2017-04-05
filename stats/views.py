@@ -38,3 +38,5 @@ def create_hit(request, item=None, action='', user=None,
         page_hit.save()
     except Exception:
         pass
+    
+    

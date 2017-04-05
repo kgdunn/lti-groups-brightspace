@@ -147,4 +147,27 @@ class WaitList(models.Model):
     is_waiting = models.BooleanField(default=False)
     started_to_wait = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
+    
+    
+
+class Tracking(models.Model):
+    """General logging."""
+    action_type = (
+                    ('create',         'create'),
+                    ('login',          'login'),
+                    ('join',           'group-join'),
+                    ('leave',          'group-leave'),
+                    ('waitlist-add',   'waitlist-add'),
+                    ('waitlist-left',  'waitlist-left'),
+                 )
+    action = models.CharField(max_length=80, choices=action_type)
+    ip_address = models.GenericIPAddressField()
+    datetime = models.DateTimeField(auto_now_add=True)
+    
+    person = models.ForeignKey(Person, blank=True, null=True)
+    group = models.ForeignKey(Group, blank=True, null=True)
+    gfp = models.ForeignKey(Group_Formation_Process, blank=True, null=True)
+
+    def __str__(self):
+        return '%s [%s]' % (self.action, self.person)
 

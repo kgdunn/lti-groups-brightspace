@@ -1,0 +1,61 @@
+{% extends "formation/base.html" %}
+{% block header %}
+<script language="javascript" type="text/javascript">
+$(document).on('click', ".group-admin-button", function() {
+    var postdata = {'csrfmiddlewaretoken': '{{ csrf_token }}',
+                    'action': $(this).attr('id'),
+                    'gfp': {{gfp.id}},};
+    $.ajax({
+        method: "POST",
+        url: '/action/{{learner.user_ID}}/',
+        data: postdata,
+        cache: false,
+        context: $(this), 
+        dataType: 'html'
+    })
+    .always(function(html_response) {
+        $('#group-extra-info-XHR').html(html_response);
+        
+    });
+});
+</script>
+{% endblock %}{# header #}
+
+
+{% block content %}
+<table class="group-summary" >
+<thead>
+<tr class="group-table-header">
+    <th>Group name</th>
+    <th>Description</th>
+    <th>Capacity</th>
+    <th>Number joined</th>
+    <th>Spaces free</th>
+</tr>
+</thead>
+<tbody>
+{% for group in groups %}
+    <tr class="group-{% cycle 'odd' 'even' %}">
+        <td>{{group.name}}</td>
+        <td>{{group.description}}</td>
+        <td class="group-col-center">{{group.capacity}}</td>
+        <td class="group-col-center">{{group.n_enrolled}}</td>
+        <td class="group-col-center">{{group.n_free}}</td>
+    </tr>
+{% endfor %}{# for group in groups #}
+</tbody>
+</table>
+<hr>
+
+<ul class="group-admin-actions">
+<li><form method="POST" method="POST" action="/action/{{learner.user_ID}}/">{% csrf_token %}<input type="hidden" name="action" value='group-CSV-download'><input type="hidden" name="gfp" value="{{gfp.id}}"><button class="group-button" id="group-CSV-download" type="submit">Download CSV enrollment list</button></form>
+<li><button class="group-button group-admin-button" id="group-enrollment-log">View enrollment log</button>
+<li><button class="group-button group-admin-button" id="group-push-enrollment">Push enrollment into Brightspace</button>
+</ul>
+
+<div class="clear"></div>
+<div id="group-extra-info-XHR">&nbsp;</div>
+{% endblock %} {# content#}
+
+{% block footer %}
+{% endblock %}

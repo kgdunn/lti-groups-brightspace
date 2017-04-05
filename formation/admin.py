@@ -1,6 +1,6 @@
 from django.contrib import admin
-
-from .models import Person, Course, Enrolled, Group_Formation_Process, Group
+from .models import Person, Course, Enrolled, Group_Formation_Process
+from .models import Group, Tracking
 
 class CourseAdmin(admin.ModelAdmin):
     list_display = ("name", "label", )
@@ -18,11 +18,16 @@ class GroupAdmin(admin.ModelAdmin):
 class EnrolledAdmin(admin.ModelAdmin):
     list_display = ("person", "group", "is_enrolled", "created", "modified")
 
+class TrackingAdmin(admin.ModelAdmin):
+    list_display = ("person", "action", "group", "gfp", "datetime")
+    
+
 admin.site.register(Course, CourseAdmin)
 admin.site.register(Person, PersonAdmin)
 admin.site.register(Group, GroupAdmin)
 admin.site.register(Group_Formation_Process, Group_Formation_ProcessAdmin)
 admin.site.register(Enrolled, EnrolledAdmin)
+admin.site.register(Tracking, TrackingAdmin)
 
 
 
