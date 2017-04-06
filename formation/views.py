@@ -16,7 +16,6 @@ import datetime
 import json
 import csv
 
-
 # Logging
 import logging
 logger = logging.getLogger(__name__)
@@ -24,7 +23,6 @@ logger.debug('Django version ' + __version__)
 
 development = settings.DEBUG
 
- 
 def track_log(request, action, gfp, group, person):
     """Tracks in the logs the person and their actions for a given group.
     """
@@ -145,6 +143,46 @@ def process_action(request, user_ID):
                 person=learner)         
                 
         return HttpResponse('This is not supported yet.')
+    
+def get_group_status(gfp):
+    """
+    Get's the net (end-result) of the group formation process. Students may have
+    enrolled and unenrolled. This gets the final state, at this current point
+    in the database.
+    
+    Returns a dictionary: each student (id) is a key. The value is itself a dict
+    where the group (id) are the keys, and the values are the actions.    
+    
+    # For the multiple-enrollments case:
+    
+    {'Student A': {'Group 1': 'enrol', 'Group 2': 'enrol'},
+     'Student B': {'Group 1': 'unenrol'}, <-- she unenrolled, but not reenrolled
+     'Student C': {'Group 2': 'enrol', 'Group 3': 'enrol'}
+    }
+    
+    # When multiple-enrollment is not allowed: it will be the same, only then
+    # we will see fewer key-value pairs in the dictionary.
+    
+    This function is useful for: 
+    (1) exporting the groups to CSV, and 
+    (2) pushing the results of the group formation via Valence to Brightspace.
+    """
+    out = defaultdict(dict)
+    for action in Enrolled.objects.filter(group__gfp=gfp):
+        if action.is_enrolled:
+            out[action.person][action.group] = 'enrol'
+        else:
+            out[action.person][action.group] = 'unenrol'
+            
+    for key, value in out.items():
+        # Only if there is more than 1 non-unique values in the set, then 
+        # we need to clean out the 'unenrol' items. Use list comprehensions.
+        if len(set([v for v in value.values()])) > 1:
+            out[key] = {k : v for k,v in value.items() if v=='enrol'}
+            
+    return out
+            
+    
         
 def admin_action_process(request, action, gfp):
     """
@@ -165,6 +203,8 @@ def admin_action_process(request, action, gfp):
         return HttpResponse(json.dumps(log))
     
     elif action =='group-CSV-download':
+        raw_data = get_group_status(gfp)
+        
         response = HttpResponse(content_type='text/csv')
         filename = '{0}--{1}.csv'.format(gfp.LTI_id,
                                          datetime.datetime.now().\
@@ -172,7 +212,10 @@ def admin_action_process(request, action, gfp):
         response['Content-Disposition'] = 'attachment; filename="{0}"'.format(
                                                                        filename)
         writer = csv.writer(response)
-        writer.writerow(['Student email', 'Group name', 'Last action taken'])
+        writer.writerow(['Student identifier', 'Group name', 'Final result'])
+        for student, results in raw_data.items():
+            for group_key, action in results.items():
+                writer.writerow([student.email, group_key.name, action])
         return response
     
 

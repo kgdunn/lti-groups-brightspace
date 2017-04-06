@@ -37,12 +37,3 @@ class SpeedTestCase(TestCase):
         groups.append(group)
         print('Time taken to create {0} users in {1} groups: {2}'.format(\
                 n_people, n_groups, datetime.datetime.now() - start))
-                        
-            
-     
-    
-    def test_animals_can_speak(self):
-        """Animals that can speak are correctly identified"""
-        pass
-        #self.assertEqual(lion.speak(), 'The lion says "roar"')
-        #self.assertEqual(cat.speak(), 'The cat says "meow"')
