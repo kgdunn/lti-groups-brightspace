@@ -67,6 +67,8 @@ class Group_Formation_Process(models.Model):
     
     instructions = models.TextField(help_text='May contain HTML instructions',
                 verbose_name='Overall instructions to learners', blank=True)
+    
+    added_dt = models.DateTimeField(auto_now_add=True)
 
     # True/False settings:
     allow_multi_enrol = models.BooleanField(default=False,

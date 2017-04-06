@@ -9,8 +9,8 @@ class PersonAdmin(admin.ModelAdmin):
     list_display = ("role", "email", "user_ID", "display_name",)
 
 class Group_Formation_ProcessAdmin(admin.ModelAdmin):
-    list_display = ("LTI_id", "course",  "title", 
-                    "show_fellows", )
+    list_display = ("LTI_id", "course",  "title", "added_dt", 
+                    "allow_multi_enrol", "show_fellows", )
 
 class GroupAdmin(admin.ModelAdmin):
     list_display = ("gfp", "name", "description", "capacity", "order")
