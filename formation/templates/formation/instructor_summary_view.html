@@ -14,7 +14,23 @@ $(document).on('click', ".group-admin-button", function() {
         dataType: 'html'
     })
     .always(function(html_response) {
-        $('#group-extra-info-XHR').html(html_response);
+        if ($(this)[0].id == 'group-enrollment-log'){
+            reply = JSON.parse(html_response)
+            $('#group-extra-info-XHR').html("<table id='group-log' class='group-summary'>");
+            $('#group-log').html("<thead><tr><th>Date and time</th><th>Student</th><th>Action</th><th>Group</th></tr></thead><tbody>");
+            $('#group-log').append('</tbody></table>');
+            var item, col, i, j, text;
+            for (i = 0; i < reply.length; i++) { 
+                item = reply[i];
+                text = ('<tr>')                
+                for (j=0; j < item.length; j++)
+                    text += '<td>' + item[j] + '</td>';
+                $('#group-log > tbody:last-child').append(text + '</tr>')
+            }
+            
+        }else{
+            $('#group-extra-info-XHR').html(html_response);
+        }
         
     });
 });
