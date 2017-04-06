@@ -82,7 +82,7 @@ def process_action(request, user_ID):
             
     group = Group.objects.filter(id=group_id)
     if not(group):
-        return HttpResponse('Invalid (GroupID)')
+        return HttpResponse('Invalid (you cannot view this page "as student")')
     else:
         group = group[0]
     
@@ -256,9 +256,10 @@ def get_create_student(request, course, gfp):
 
     if learner:
         # Augments the learner with extra fields that might not be there
-        if learner.user_ID == '':
-            learner.user_ID = user_ID
-            learner.save()
+        learner.user_ID = learner.user_ID or user_ID
+        learner.email = learner.email or email
+        learner.save()
+        
             
     # Register that this person is allowed into this course.
     Allowed.objects.get_or_create(person=learner, course=course, allowed=True)
