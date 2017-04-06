@@ -54,7 +54,7 @@ def process_action(request, user_ID):
     """
     # Collect all information we can from the user and browser:
     if request.GET:
-        return HttpResponse('Invalid')
+        return HttpResponse('Invalid (GET)')
     action = request.POST.get('action', '').strip()
     group_id = request.POST.get('group_id', '0').strip()
     gfp = request.POST.get('gfp', '0').strip()
@@ -62,14 +62,14 @@ def process_action(request, user_ID):
     # Now hit the database:
     learner = Person.objects.filter(user_ID=user_ID)
     if not(learner):
-        return HttpResponse('Invalid')
+        return HttpResponse('Invalid (learner)')
     else:
         learner = learner[0]
     
 
     gfp = Group_Formation_Process.objects.filter(id=gfp)
     if not(gfp):
-        return HttpResponse('Invalid') 
+        return HttpResponse('Invalid (GFP)') 
     else:
         gfp = gfp[0]
         
@@ -82,18 +82,18 @@ def process_action(request, user_ID):
             
     group = Group.objects.filter(id=group_id)
     if not(group):
-        return HttpResponse('Invalid')
+        return HttpResponse('Invalid (GroupID)')
     else:
         group = group[0]
     
     
     if group.gfp.id != gfp.id:
-        return HttpResponse('Invalid') 
+        return HttpResponse('Invalid (mismatch)') 
     
     allowed = Allowed.objects.filter(person=learner, 
                                      course=group.gfp.course).count()
     if not(allowed):
-        return HttpResponse('Invalid') 
+        return HttpResponse('Invalid (not authorized)') 
     
     # OK, so we have determined with several checks that the student is
     # allowed to take an action now.
@@ -424,7 +424,7 @@ def index(request):
     """
     The main entry point
     """
-    logger.debug(str(request.POST))
+    
     if development:
         # Creates a fake ``request`` that is used during development/debugging
         original_request = request
