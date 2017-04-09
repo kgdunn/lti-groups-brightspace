@@ -84,6 +84,7 @@ class Group_Formation_Process(models.Model):
                    'people enrolled in their groups.'))
     
     has_been_pushed = models.BooleanField(default=False)
+    
     push_dt = models.DateTimeField(editable=False, auto_now_add=True,
         verbose_name='When was the group formation pushed to Brightspace?')
     
@@ -95,8 +96,8 @@ class Group_Formation_Process(models.Model):
     #    verbose_name="When does self-enrolment start?",
     #    help_text='Usually the same as above date/time, but can be later', )
 
-    #dt_group_selection_stops = models.DateTimeField(
-    #    verbose_name=('When does group selection stop'))
+    dt_group_selection_stops = models.DateTimeField(
+        verbose_name=('When does group enrolment stop?'))
     
 
     #show_description = models.BooleanField(default=True,

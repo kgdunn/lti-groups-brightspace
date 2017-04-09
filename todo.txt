@@ -1,11 +1,23 @@
 
-Students must manually unenroll, then re-enroll. Not automated unenroll/reenrol
-One student enrolls, then another, with in the same approximate time. 
-Group capacity has only 1 spot left. Who wins?
+Groups
+--------
+Open time: DONE
+Closing time: TO DO <-- put end date on it and check it in the "action" function
+Allow more than N enrollments
+Groups of different sizes: DONE
+Can be prefilled
+Allow self-removal and re-enrollment: DONE
+Longer term: waitlist
+Export to CSV: DONE
+IMport names from CSV
+Show description of groups: DONE
+Log for administrator: DONE
+After cut-off date/time the student sees the final enrolment of their group.
 
+
+
+----
 Check what happens if Admin role person uses "View as Student"
-
-
 Make it prettier: student version
  * iconic?
  * check on mobile?

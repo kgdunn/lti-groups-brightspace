@@ -35,6 +35,7 @@ $(document).on('click', ".group-admin-button", function() {
     });
 });
 </script>
+
 {% endblock %}{# header #}
 
 
@@ -65,7 +66,7 @@ $(document).on('click', ".group-admin-button", function() {
 
 <ul class="group-admin-actions">
 <li><form method="POST" method="POST" action="/action/{{learner.user_ID}}/">{% csrf_token %}<input type="hidden" name="action" value='group-CSV-download'><input type="hidden" name="gfp" value="{{gfp.id}}"><button class="group-button" id="group-CSV-download" type="submit">Download CSV enrollment list</button></form>
-<li><button class="group-button group-admin-button" id="group-enrollment-log">View enrollment log</button>
+<li><button class="group-button group-admin-button" id="group-enrollment-log">Log (click to refresh)</button>
 <li><button class="group-button group-admin-button" id="group-push-enrollment">Publish this enrollment in Brightspace</button>
 </ul>
 

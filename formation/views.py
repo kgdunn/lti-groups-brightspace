@@ -362,16 +362,19 @@ def add_enrol_unenrol_links(groups, learner=None, is_enrolled_already=False):
         
     Table of assignments, depending on 3 conditions:
         A = Already enrolled in this group?
-        B = Multi-group evaluation allowed (gfp.allow_multi_enrol=True)
+        B = Multi-group evaluation allowed (gfp.allow_multi_enrol=False||True)
         C = Capacity of group reached?
+        D = Student is already enrolled in at least one group
     
-          |y1  y2  y3 |  A   B   C
-          |===========|===========
-        1.|T   F   F  |  F   F   F
+          |y1  y2  y3 |  A   B   C   D
+          |===========|===============
+        1a|T   F   F  |  F   F   F   F
+        1b|F   F   F  |  F   F   F   T
         2.|F   T   F  |  T   F   F
-        3.|T   F   F  |  F   T   F
+        3a|T   F   F  |  F   T   F   F
+        3b|T   F   F  |  F   T   F   T
         4.|F   T   F  |  T   T   F
-          |-----------|-----------
+          |-----------|---------------
         5.|F   F   T  |  F   F   T
         6.|F   T   F  |  T   F   T
         7.|F   F   T  |  F   T   T
@@ -395,9 +398,12 @@ def add_enrol_unenrol_links(groups, learner=None, is_enrolled_already=False):
         if group.is_enrolled:         # learner already enrolled (rows 2 and 4)
             hide_leave_group = False  # then the defaults suffice
         else:
-            group.enrol_link = True   # rows 1 and 3
+            # rows 1 and 3a/b
             group.unenrol_link = False
-             
+            # check 1a/1b and 3a/b
+            if not(is_enrolled_already) or group.gfp.allow_multi_enrol: 
+                group.enrol_link = True   
+                         
           
         # Rows 5, 6, 7 and 8 in the above table trump all conditions:
         if Enrolled.objects.filter(group=group, is_enrolled=True).count()\
@@ -442,10 +448,10 @@ def index(request):
                         #'roles': (u'urn:lti:instrole:ims/lis/Instructor,Admin,'
                         #           'urn:lti:instrole:ims/lis/Admin,Admin'),
                         'roles': u'Instructor',
-                        #'roles': u'Student',
-                        'lis_person_contact_email_primary': 'kgdunn@gmail.com2',
+                        'roles': u'Student',
+                        'lis_person_contact_email_primary': 'kgdunn@gmail.com5',
                         'lis_person_name_full': 'Kevin Dunn',
-                        'user_id': '01a7b8a9-f1c9-430d-b7d9-eca804cbde10_702',
+                        'user_id': '01a7b8a9-f1c9-430d-b7d9-eca804cbde10_705',
                         }
         
         request.META = {'REMOTE_ADDR': '127.0.0.1'}
