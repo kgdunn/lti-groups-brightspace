@@ -1,18 +1,8 @@
-
-Groups
+Groups TODO
 --------
-Open time: DONE
-Closing time: TO DO <-- put end date on it and check it in the "action" function
-Allow more than N enrollments
-Groups of different sizes: DONE
-Can be prefilled
-Allow self-removal and re-enrollment: DONE
+Can be prefilled:
 Longer term: waitlist
-Export to CSV: DONE
-IMport names from CSV
-Show description of groups: DONE
-Log for administrator: DONE
-After cut-off date/time the student sees the final enrolment of their group.
+Import names from CSV
 
 
 
@@ -47,9 +37,9 @@ Setting up on the server
 # To recreate website:
 # -----------
 # su postgres
-# psql 
+# psql
 # DROP DATABASE django_lti_groups_db;
-# create database django_lti_groups_db; 
+# create database django_lti_groups_db;
 # create user django_lti_groups_user;
 # ALTER USER django_lti_groups_user WITH PASSWORD '';
 # grant all on database django_lti_groups_db to django_lti_groups_user;
