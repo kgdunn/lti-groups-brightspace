@@ -520,3 +520,5 @@ def index(request):
                    }
         return render(original_request,
                       'formation/instructor_summary_view.html', ctx)
+
+
