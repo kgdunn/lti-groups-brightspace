@@ -1,0 +1,29 @@
+{% extends "formation/base.html" %}
+{% block header %}{% endblock %}{# header #}
+
+{% block content %}
+
+
+<table class="group-summary" >
+<p>The date and time cut-off to join a group passed at
+{{gfp.dt_group_selection_stops|date:"d F Y"}} at
+{{gfp.dt_group_selection_stops|date:"H:i:s"}}.
+
+
+{% if is_enrolled_already %}
+   <p>At, or before, this cut-off time you are recorded as being part of this group:
+   <span id="group-part-of">{{groups_joined.0.name}}</span>
+   <br>
+   <span id="group-part-of-description">{{groups_joined.0.description}}</span>
+{% else %}
+   <p>At that date and time of the cut-off you had not joined any group yet.
+{% endif %}
+
+<p>TODO: format this page
+<p>TODO: show multiple-enrollments in a table
+
+{% endblock %} {# content#}
+
+
+
+{% block footer %}{% endblock %}

@@ -4,6 +4,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.conf import settings
+from django.utils import timezone
 
 # Our imports
 from .models import Person, Course, Group_Formation_Process
@@ -32,22 +33,22 @@ def track_log(request, action, gfp, group, person):
                            action=action,
                            gfp=gfp,
                            group=group,
-                           person=person,                          
+                           person=person,
                         )
         tracked.save()
     except Exception:
         pass
-    
-    
+
+
 @csrf_exempt
 @xframe_options_exempt # Required for integration into Brightspace
 def process_action(request, user_ID):
     """
     Ensures the learner is actually in the group_formation_process: how?
     > Since the learner has visited the group page in Brightspace, it implies
-    > they are registered in the course. 
+    > they are registered in the course.
     > Additional precaution: csrf cookie checking
-    
+
     Basic principle: even though this is protected with CSRF, we will not spare
     any precaution, since spoofing this URL can lead to confusion. Perform
     extra checks before modifying the database.
@@ -65,106 +66,114 @@ def process_action(request, user_ID):
         return HttpResponse('Invalid (learner)')
     else:
         learner = learner[0]
-    
+
 
     gfp = Group_Formation_Process.objects.filter(id=gfp)
     if not(gfp):
-        return HttpResponse('Invalid (GFP)') 
+        return HttpResponse('Invalid (GFP)')
     else:
         gfp = gfp[0]
-        
-        
+
+
     # Now we can split off for students vs. instructors, to keep this function
     # overzichtelijk
     if learner.role == 'Admin':
         return admin_action_process(request, action, gfp)
-            
-            
+
+
+    # Check if group formation is still allowed. The user can have the link
+    # from a time prior to the cut-off. If they click that link afterward
+    # the cut-off they are told they cannot enrol.
+    if (timezone.now() > gfp.dt_group_selection_stops):
+        return HttpResponse(('The cut-off date and time to join, or leave, a '
+                             'group has passed.'))
+
+
     group = Group.objects.filter(id=group_id)
     if not(group):
         return HttpResponse('Invalid (you cannot view this page "as student")')
     else:
         group = group[0]
-    
-    
+
+
     if group.gfp.id != gfp.id:
-        return HttpResponse('Invalid (mismatch)') 
-    
-    allowed = Allowed.objects.filter(person=learner, 
+        return HttpResponse('Invalid (mismatch)')
+
+    allowed = Allowed.objects.filter(person=learner,
                                      course=group.gfp.course).count()
     if not(allowed):
-        return HttpResponse('Invalid (not authorized)') 
-    
+        return HttpResponse('Invalid (not authorized)')
+
     # OK, so we have determined with several checks that the student is
     # allowed to take an action now.
-    
+
     if action == 'group-enrol':
         success_message = "Successfully enrolled"
-        
+
         if Enrolled.objects.filter(group=group, is_enrolled=True).count() >= \
                                                              group.capacity:
-            # We cannot enrol beyond the group capacity 
+            # We cannot enrol beyond the group capacity
             # The link is not shown, but this precaution is here also.
-            return HttpResponse('The group has reached the maximum capacity')     
-                
+            return HttpResponse('The group has reached the maximum capacity')
+
         if not(gfp.allow_multi_enrol):
             # First remove the user from all other enrollments:
             all_enrols = Enrolled.objects.filter(person=learner, group__gfp=gfp)
             for enrolled in all_enrols:
                 if enrolled.is_enrolled:
-                    track_log(request, action='leave', gfp=gfp, 
+                    track_log(request, action='leave', gfp=gfp,
                               group=enrolled.group, person=learner)
-                    
+
             all_enrols.update(is_enrolled=False)
 
-                        
-        enrolled, _ = Enrolled.objects.get_or_create(person=learner, 
-                                                     group=group)            
+
+        enrolled, _ = Enrolled.objects.get_or_create(person=learner,
+                                                     group=group)
         enrolled.is_enrolled = True
         enrolled.save()
         track_log(request, action='join', gfp=gfp, group=group,
-                  person=learner)        
-                
-        return HttpResponse(success_message) 
-    
+                  person=learner)
+
+        return HttpResponse(success_message)
+
     if action == 'group-unenrol':
         success_message = 'Successfully un-enrolled'
-        enrolled, _ = Enrolled.objects.get_or_create(person=learner, 
+        enrolled, _ = Enrolled.objects.get_or_create(person=learner,
                                                      group=group)
         enrolled.is_enrolled = False
         enrolled.save()
         track_log(request, action='leave', gfp=gfp, group=group,
-                  person=learner)         
+                  person=learner)
 
-        return HttpResponse(success_message)  
-    
+        return HttpResponse(success_message)
+
     if action == 'group-add-waitlist':
         track_log(request, action='waitlist-add', gfp=gfp, group=group,
-                person=learner)         
-                
+                person=learner)
+
         return HttpResponse('This is not supported yet.')
-    
+
 def get_group_status(gfp):
     """
     Get's the net (end-result) of the group formation process. Students may have
     enrolled and unenrolled. This gets the final state, at this current point
     in the database.
-    
+
     Returns a dictionary: each student (id) is a key. The value is itself a dict
-    where the group (id) are the keys, and the values are the actions.    
-    
+    where the group (id) are the keys, and the values are the actions.
+
     # For the multiple-enrollments case:
-    
+
     {'Student A': {'Group 1': 'enrol', 'Group 2': 'enrol'},
      'Student B': {'Group 1': 'unenrol'}, <-- she unenrolled, but not reenrolled
      'Student C': {'Group 2': 'enrol', 'Group 3': 'enrol'}
     }
-    
+
     # When multiple-enrollment is not allowed: it will be the same, only then
     # we will see fewer key-value pairs in the dictionary.
-    
-    This function is useful for: 
-    (1) exporting the groups to CSV, and 
+
+    This function is useful for:
+    (1) exporting the groups to CSV, and
     (2) pushing the results of the group formation via Valence to Brightspace.
     """
     out = defaultdict(dict)
@@ -173,38 +182,38 @@ def get_group_status(gfp):
             out[action.person][action.group] = 'enrol'
         else:
             out[action.person][action.group] = 'unenrol'
-            
+
     for key, value in out.items():
-        # Only if there is more than 1 non-unique values in the set, then 
+        # Only if there is more than 1 non-unique values in the set, then
         # we need to clean out the 'unenrol' items. Use list comprehensions.
         if len(set([v for v in value.values()])) > 1:
             out[key] = {k : v for k,v in value.items() if v=='enrol'}
-            
+
     return out
-            
-    
-        
+
+
+
 def admin_action_process(request, action, gfp):
     """
-    The administrator can click in the user-interface to take certain 
+    The administrator can click in the user-interface to take certain
     ``action``s for a given ``gfp``.
-    
+
     Must return an HttpResponse object here.
     """
     if action =='group-enrollment-log':
         # Gets a log history for display in the browser. Returns a JSON object.
-        
+
         log = []
         log_items = Tracking.objects.filter(gfp=gfp).order_by('-datetime')
         for item in log_items:
-            log.append([item.datetime.strftime('%d/%B/%Y %H:%M:%S.%f'), 
+            log.append([item.datetime.strftime('%d/%B/%Y %H:%M:%S.%f'),
                         item.person.email, item.action, item.group.name])
-            
+
         return HttpResponse(json.dumps(log))
-    
+
     elif action =='group-CSV-download':
         raw_data = get_group_status(gfp)
-        
+
         response = HttpResponse(content_type='text/csv')
         filename = '{0}--{1}.csv'.format(gfp.LTI_id,
                                          datetime.datetime.now().\
@@ -217,38 +226,38 @@ def admin_action_process(request, action, gfp):
             for group_key, action in results.items():
                 writer.writerow([student.email, group_key.name, action])
         return response
-    
+
 
     elif action == 'group-push-enrollment':
         return HttpResponse('GROUP PUSH TODO')
     return HttpResponse('This is not supported yet.')
 
-  
+
 
 def get_create_student(request, course, gfp):
     """
     Gets or creates the learner from the POST request.
     """
     newbie = False
-    
+
     email = request.POST.get('lis_person_contact_email_primary', '')
     display_name = request.POST.get('lis_person_name_full', '')
     user_ID = request.POST.get('user_id', '')
     POST_role = request.POST.get('roles', '')
-    
+
     # You can also use: request.POST['ext_d2l_role'] in Brightspace
     role = 'Student'
     if 'Instructor' in POST_role:
         role = 'Admin'
-    
+
     learner, newbie = Person.objects.get_or_create(email=email,
                                                    user_ID=user_ID,
                                                    role=role)
 
     if newbie:
-        create_hit(request, item=course, action='create', 
+        create_hit(request, item=course, action='create',
                        user=learner, other_info='gfp.id={0}'.format(gfp.id),
-                       other_info_id=gfp.id)               
+                       other_info_id=gfp.id)
         learner.display_name = display_name
         learner.save()
         logger.info('New learner: {0} [{1}]'.format(learner.display_name,
@@ -259,8 +268,8 @@ def get_create_student(request, course, gfp):
         learner.user_ID = learner.user_ID or user_ID
         learner.email = learner.email or email
         learner.save()
-        
-            
+
+
     # Register that this person is allowed into this course.
     Allowed.objects.get_or_create(person=learner, course=course, allowed=True)
 
@@ -284,7 +293,7 @@ def starting_point(request):
         return (HttpResponse(("You are not registered in this course. NCNPR")),
                 None, None)
 
-    
+
     try:
         course = Course.objects.get(label=course_ID)
     except Course.DoesNotExist:
@@ -295,9 +304,9 @@ def starting_point(request):
         else:
             name = str(name)
         course = Course.objects.create(name=name, label=course_ID)
-        
-        logger.info('Created course: {0}[code={1}]'.format(name, course_ID)) 
-        
+
+        logger.info('Created course: {0}[code={1}]'.format(name, course_ID))
+
     # Now we have a ``Course`` instance. Next: get the GFP within this course.
     try:
         gfp = Group_Formation_Process.objects.get(course=course,
@@ -306,20 +315,20 @@ def starting_point(request):
         # The GFP does not exist in our database; create it.
         gfp = Group_Formation_Process.objects.create(LTI_id=gfp_ID,
                                                      course=course)
-        
-        logger.info('Created GFP: {0}[LTI_id={1}]'.format(course, gfp_ID)) 
-        
+
+        logger.info('Created GFP: {0}[LTI_id={1}]'.format(course, gfp_ID))
+
 
     person = get_create_student(request, course, gfp)
- 
+
     if person:
-            
+
         return person, course, gfp
     else:
         return (HttpResponse(("You are not registered in this course.")), None,
                 None)
-    
-    
+
+
 def add_enrollment_summary(groups, learner=None):
     """
     Adds the group enrollment summary for the QuerySet of ``groups``. Modifies
@@ -327,14 +336,15 @@ def add_enrollment_summary(groups, learner=None):
         * n_enrolled     : number of students from course enrolled in this group
         * n_free         : this is what students want: number of free spots
         * is_enrolled    : True or False, indicating if the learner is enrolled
-        
+
     The instances in the QuerySet are never saved to the database, but will
     have added information that can be rendered in the templates.
-    
-    Returns ``is_enrolled_already``, if ``learner`` is enroled in 1 or more 
+
+    Returns ``is_enrolled_already``, if ``learner`` is enroled in 1 or more
     groups.
     """
     is_enrolled_already = False
+    group_s_enrolled_in = []
     for group in groups:
         enrolleds = Enrolled.objects.filter(group=group, is_enrolled=True)
         group.n_enrolled = enrolleds.count()
@@ -345,27 +355,28 @@ def add_enrollment_summary(groups, learner=None):
         if learner and group.n_enrolled:
             group.is_enrolled = enrolleds.filter(person=learner).count()
             if group.is_enrolled:
-                is_enrolled_already = True         
-            
-    return is_enrolled_already 
-                
+                group_s_enrolled_in.append(group)
+                is_enrolled_already = True
+
+    return is_enrolled_already, group_s_enrolled_in
+
 
 def add_enrol_unenrol_links(groups, learner=None, is_enrolled_already=False):
     """
-    Adds the links to enrol and unenrol to the QuerySet of ``groups``. This 
+    Adds the links to enrol and unenrol to the QuerySet of ``groups``. This
     is only called if the student is accessing the page.
-    
+
     Modifies the instances by adding new field(s):
         * y1=enrol_link     : click this link and the student will be enrolled
         * y2=unenrol_link   : click this link and the student will be unenrolled
-        * y3=waitlist_link  : click this link and the student is waitlisted 
-        
+        * y3=waitlist_link  : click this link and the student is waitlisted
+
     Table of assignments, depending on 3 conditions:
         A = Already enrolled in this group?
         B = Multi-group evaluation allowed (gfp.allow_multi_enrol=False||True)
         C = Capacity of group reached?
         D = Student is already enrolled in at least one group
-    
+
           |y1  y2  y3 |  A   B   C   D
           |===========|===============
         1a|T   F   F  |  F   F   F   F
@@ -379,17 +390,18 @@ def add_enrol_unenrol_links(groups, learner=None, is_enrolled_already=False):
         6.|F   T   F  |  T   F   T
         7.|F   F   T  |  F   T   T
         8.|F   T   F  |  T   T   T
-        
+          |-----------|---------------
+
     The instances in the QuerySet are never saved to the database, but will
-    have added information that can be rendered in the templates.    
-    
+    have added information that can be rendered in the templates.
+
     Also, returns a dictionary of columns to hide in the student view.
     """
     # Assume we will hide all these columns, unless otherwise specified
     hide_description = True
     hide_join_waitlist = True
     hide_leave_group = True
-    
+
     for group in groups:
         if group.description:
             hide_description = False
@@ -401,10 +413,10 @@ def add_enrol_unenrol_links(groups, learner=None, is_enrolled_already=False):
             # rows 1 and 3a/b
             group.unenrol_link = False
             # check 1a/1b and 3a/b
-            if not(is_enrolled_already) or group.gfp.allow_multi_enrol: 
-                group.enrol_link = True   
-                         
-          
+            if not(is_enrolled_already) or group.gfp.allow_multi_enrol:
+                group.enrol_link = True
+
+
         # Rows 5, 6, 7 and 8 in the above table trump all conditions:
         if Enrolled.objects.filter(group=group, is_enrolled=True).count()\
                                                              >= group.capacity:
@@ -417,13 +429,13 @@ def add_enrol_unenrol_links(groups, learner=None, is_enrolled_already=False):
         else:
             # Rows 5, 6, 7 and 8 for column C and y3
             group.waitlist_link = False
-            
+
     return {'description': hide_description,
             'join_waitlist': hide_join_waitlist,
             'leave_group': hide_leave_group}
-            
-        
-            
+
+
+
 @csrf_exempt           # The entry page is exempt, the others are not.
 @xframe_options_exempt # Required for integration into Brightspace
 @ensure_csrf_cookie    # But set the CSRF cookie for later use
@@ -431,16 +443,16 @@ def index(request):
     """
     The main entry point
     """
-    
+
     if development:
         # Creates a fake ``request`` that is used during development/debugging
         original_request = request
-        request = namedtuple('Request', ['method', 'POST', 'META'])   
+        request = namedtuple('Request', ['method', 'POST', 'META'])
         request.method = "POST"
                          # course code in Brightspace
         request.POST = {'context_id': '8228',
                         'context_title': [u'IO3075 TCPD (2016/17 Q3)'],
-                        
+
                          # When a new item is created in Brightspace, a code
                          # ID is provided. The course and this code provide
                          # a unique way to identify the course.
@@ -449,16 +461,16 @@ def index(request):
                         #           'urn:lti:instrole:ims/lis/Admin,Admin'),
                         'roles': u'Instructor',
                         'roles': u'Student',
-                        'lis_person_contact_email_primary': 'kgdunn@gmail.com5',
+                        'lis_person_contact_email_primary': 'kgdunn@gmail.com4',
                         'lis_person_name_full': 'Kevin Dunn',
-                        'user_id': '01a7b8a9-f1c9-430d-b7d9-eca804cbde10_705',
+                        'user_id': '01a7b8a9-f1c9-430d-b7d9-eca804cbde10_704',
                         }
-        
+
         request.META = {'REMOTE_ADDR': '127.0.0.1'}
     else:
         original_request = request
-        
-            
+
+
     if request.method != 'POST' and (len(request.GET.keys())==0):
         return HttpResponse("This is the Brightspace Groups LTI component.")
 
@@ -470,25 +482,35 @@ def index(request):
     learner = person_or_error
     logger.debug('Learner entering: {0}'.format(learner))
 
-   
+
     # Do the work here; Return the HTTP Response
     if learner.role == 'Student':
         # Get them alphabetically, and then within the fixed order specified
         groups = Group.objects.filter(gfp=gfp).order_by('name').order_by('order')
-        is_enrolled_already = add_enrollment_summary(groups, learner)
-        hide_columns = add_enrol_unenrol_links(groups, learner, 
-                                               is_enrolled_already)
-        
-        ctx = {'groups': groups,
-               'learner': learner,
-               'gfp': gfp,
-               'is_enrolled_already': is_enrolled_already,
-               'hide_columns': hide_columns,
-               }
+        is_enrolled_already, joined = add_enrollment_summary(groups, learner)
 
-        return render(original_request, 
-                      'formation/student_summary_view.html', ctx)        
-    
+        if (timezone.now() > gfp.dt_group_selection_stops):
+            ctx = {'groups_joined': joined,
+                   'learner': learner,
+                   'gfp': gfp,
+                   'is_enrolled_already': is_enrolled_already,
+                  }
+
+            return render(original_request,
+                        'formation/student_summary_afterwards.html', ctx)
+        else:
+            hide_columns = add_enrol_unenrol_links(groups, learner,
+                                                   is_enrolled_already)
+            ctx = {'groups': groups,
+                   'learner': learner,
+                   'gfp': gfp,
+                   'is_enrolled_already': is_enrolled_already,
+                   'hide_columns': hide_columns,
+                   }
+
+            return render(original_request,
+                          'formation/student_summary_view.html', ctx)
+
     elif learner.role == 'Admin':
         groups = Group.objects.filter(gfp=gfp).order_by('name').order_by('order')
         _ = add_enrollment_summary(groups, learner)
@@ -496,6 +518,5 @@ def index(request):
                'learner': learner,
                'gfp': gfp,
                    }
-        return render(original_request, 
-                      'formation/instructor_summary_view.html', ctx)          
-    
+        return render(original_request,
+                      'formation/instructor_summary_view.html', ctx)
