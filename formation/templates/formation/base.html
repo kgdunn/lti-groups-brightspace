@@ -5,7 +5,7 @@
 <style>
 body {
     font-size: 11pt;
-    font-family: Lato, arial, sans-serif; 
+    font-family: Lato, arial, sans-serif;
 }
 p{
   margin: 0;
@@ -73,12 +73,93 @@ ul.group-admin-actions li{
   float: left;
   margin-right: 2rem;
 }
+<style>
+.box a:hover {
+    text-decoration: none;
+}
+
+.button {
+  font-size: 1em;
+  padding: 2px;
+  color: #00f;
+  text-decoration: none;
+  cursor: pointer;
+  border-radius: 15px;
+}
+.box {
+  width: 50%;
+  margin: 0 auto;
+  padding: 2px;
+  border: 2px solid #fff;
+  border-radius: 25px;
+  text-align: center;
+}
+
+.button:hover {
+  background: #FFFFFF;
+    margin: 0 auto;
+}
+.overlay {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.2);
+  visibility: hidden;
+  opacity: 0;
+}
+.overlay:target {
+  visibility: visible;
+  opacity: 1;
+}
+.popup {
+  margin: 30px auto;
+  padding: 20px;
+  background: #fff;
+  border-radius: 5px;
+  width: 30%;
+  margin-right:100px;
+  float:right;
+}
+.popup h2 {
+    font-size:1.5em;
+  margin-top: 0;
+  color: #333;
+  font-family: sans-serif;
+}
+.popup .close {
+  position: absolute;
+  float:right;
+  top: 30px;
+  right: 110px;
+  font-size: 30px;
+  font-weight: bold;
+  text-decoration: none;
+  color: #333;
+}
+.popup .close:hover {
+  color: #FF0000;
+}
+.popup .content {
+  max-height: 80%;
+  overflow: auto;
+}
+
+@media screen and (max-width: 700px){
+  .box{
+    width: 70%;
+  }
+  .popup{
+    width: 70%;
+  }
+}
 </style>
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/tabulator/2.11.0/tabulator.min.js"></script>
+<script type="text/javascript" src="//lti.connectmv.com/images/tabulator.js"></script>
 
 
 {% block header %}{% endblock %}

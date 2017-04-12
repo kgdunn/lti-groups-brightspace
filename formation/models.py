@@ -1,6 +1,6 @@
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
-
+import datetime
 
 @python_2_unicode_compatible
 class Person(models.Model):
@@ -19,7 +19,7 @@ class Person(models.Model):
     role = models.CharField(max_length=7, choices=ROLES, default='Student')
 
     def __str__(self):
-        return u'[{0}]{1}'.format(self.role, 
+        return u'[{0}]{1}'.format(self.role,
                                   self.email)
 
 
@@ -29,7 +29,7 @@ class Course(models.Model):
     name = models.CharField(max_length=300, verbose_name="Course name")
     label = models.CharField(max_length=300, verbose_name="LTI POST label",
         help_text=("Obtain this from the HTML POST field: 'context_id' "))
-    
+
     offering = models.PositiveIntegerField(default='0000', blank=True,
         help_text="Which year/quarter is it being offered?")
 
@@ -59,22 +59,26 @@ class Group_Formation_Process(models.Model):
 
     LTI_id = models.CharField(max_length=50, verbose_name="LTI ID",
             help_text=('In Brightspace LTI post: "resource_link_id"'))
-    
+
     course = models.ForeignKey(Course)
-        
+
+    setup_mode = models.BooleanField(default=True, help_text=("When the group "
+        "settings are still being added/edited; outside of `setup_mode` it is "
+        "not possible to update the group names and descriptions anymore."))
+
     title = models.CharField(max_length=300, blank=True,
                              verbose_name="Group formation name")
-    
+
     instructions = models.TextField(help_text='May contain HTML instructions',
                 verbose_name='Overall instructions to learners', blank=True)
-    
+
     added_dt = models.DateTimeField(auto_now_add=True)
 
     # True/False settings:
     allow_multi_enrol = models.BooleanField(default=False,
         help_text=('If True, the student can be in more than 1 group in this '
                    'category.'))
-    
+
     #allow_unenroll = models.BooleanField(default=True,
     #    help_text=('Can learners unenroll, which implies they will also be '
     #               'allowed to re-enroll, until the close off date/time.'))
@@ -82,12 +86,12 @@ class Group_Formation_Process(models.Model):
     show_fellows = models.BooleanField(default=False,
         help_text=('Can learners see the FirstName LastName of the other '
                    'people enrolled in their groups.'))
-    
+
     has_been_pushed = models.BooleanField(default=False)
-    
+
     push_dt = models.DateTimeField(editable=False, auto_now_add=True,
         verbose_name='When was the group formation pushed to Brightspace?')
-    
+
     # Dates and times
     #dt_groups_open_up = models.DateTimeField(
     #    verbose_name='When can learners start to register', )
@@ -97,8 +101,9 @@ class Group_Formation_Process(models.Model):
     #    help_text='Usually the same as above date/time, but can be later', )
 
     dt_group_selection_stops = models.DateTimeField(
+        default=datetime.datetime(2050, 12, 31, 23, 59, 59, 999999),
         verbose_name=('When does group enrolment stop?'))
-    
+
 
     #show_description = models.BooleanField(default=True,
     #    help_text=('Should we show the group descriptions also?'))
@@ -117,7 +122,9 @@ class Group_Formation_Process(models.Model):
 class Group(models.Model):
     """ Used when learners work/submit in groups."""
     gfp = models.ForeignKey(Group_Formation_Process)
-    name = models.CharField(max_length=500, verbose_name="Group name")
+    name = models.CharField(max_length=500, blank=True,
+                verbose_name="Group name",
+                help_text='An empty name is effectively a non-existant group.')
     description = models.TextField(blank=True,
                                    verbose_name="Detailed group description")
     capacity = models.PositiveIntegerField(default=0,
@@ -150,8 +157,8 @@ class WaitList(models.Model):
     is_waiting = models.BooleanField(default=False)
     started_to_wait = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
-    
-    
+
+
 
 class Tracking(models.Model):
     """General logging."""
@@ -166,7 +173,7 @@ class Tracking(models.Model):
     action = models.CharField(max_length=80, choices=action_type)
     ip_address = models.GenericIPAddressField()
     datetime = models.DateTimeField(auto_now_add=True)
-    
+
     person = models.ForeignKey(Person, blank=True, null=True)
     group = models.ForeignKey(Group, blank=True, null=True)
     gfp = models.ForeignKey(Group_Formation_Process, blank=True, null=True)

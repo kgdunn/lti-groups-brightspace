@@ -1,6 +1,24 @@
 {% extends "formation/base.html" %}
 {% block header %}
 <script language="javascript" type="text/javascript">
+$(document).on('click', "a.group-info-click", function() {
+    var postdata = {'csrfmiddlewaretoken': '{{ csrf_token }}',
+                    'action': 'see-members',
+                    'group_id': $(this).attr("id"),
+                    'gfp': {{gfp.id}},};
+    $.ajax({
+        method: "POST",
+        url: '/action/{{learner.user_ID}}/',
+        data: postdata,
+        cache: false,
+        context: $(this),
+        dataType: 'html'
+    })
+    .always(function(html_response, postdata) {
+        $('.content').html(html_response);
+    });
+
+});
 $(document).on('click', ".group-admin-button", function() {
     var postdata = {'csrfmiddlewaretoken': '{{ csrf_token }}',
                     'action': $(this).attr('id'),
@@ -10,28 +28,33 @@ $(document).on('click', ".group-admin-button", function() {
         url: '/action/{{learner.user_ID}}/',
         data: postdata,
         cache: false,
-        context: $(this), 
+        context: $(this),
         dataType: 'html'
     })
     .always(function(html_response) {
         if ($(this)[0].id == 'group-enrollment-log'){
             reply = JSON.parse(html_response)
-            $('#group-extra-info-XHR').html("<table id='group-log' class='group-summary'>");
+            var summary_text = "";
+            if (reply.length > 1){
+               summary_text += 'There are ' + reply.length + ' events.';
+            }else if(reply.length == 1){
+               summary_text += 'There is 1 event.';}
+            else{ summary_text = 'No activity has taken place yet.'; }
+            $('#group-extra-info-XHR').html(summary_text + "<table id='group-log' class='group-summary'>");
             $('#group-log').html("<thead><tr><th>Date and time</th><th>Student</th><th>Action</th><th>Group</th></tr></thead><tbody>");
             $('#group-log').append('</tbody></table>');
             var item, col, i, j, text;
-            for (i = 0; i < reply.length; i++) { 
+            for (i = 0; i < reply.length; i++) {
                 item = reply[i];
-                text = ('<tr>')                
+                text = ('<tr>')
                 for (j=0; j < item.length; j++)
                     text += '<td>' + item[j] + '</td>';
                 $('#group-log > tbody:last-child').append(text + '</tr>')
             }
-            
         }else{
             $('#group-extra-info-XHR').html(html_response);
         }
-        
+
     });
 });
 </script>
@@ -48,16 +71,18 @@ $(document).on('click', ".group-admin-button", function() {
     <th>Capacity</th>
     <th>Number joined</th>
     <th>Spaces free</th>
+    <th>Members</th>
 </tr>
 </thead>
 <tbody>
 {% for group in groups %}
     <tr class="group-{% cycle 'odd' 'even' %}">
-        <td>{{group.name}}</td>
+        <td>{% if group.n_enrolled %}<a href="#" class="group-info-click" id="{{group.id}}">{{group.name}}</a>{% else %}{{group.name}}{% endif %}</td>
         <td>{{group.description}}</td>
         <td class="group-col-center">{{group.capacity}}</td>
         <td class="group-col-center">{{group.n_enrolled}}</td>
         <td class="group-col-center">{{group.n_free}}</td>
+        <td class="group-col-center"></td>
     </tr>
 {% endfor %}{# for group in groups #}
 </tbody>

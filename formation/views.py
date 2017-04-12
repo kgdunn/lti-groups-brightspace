@@ -20,7 +20,6 @@ import csv
 # Logging
 import logging
 logger = logging.getLogger(__name__)
-logger.debug('Django version ' + __version__)
 
 development = settings.DEBUG
 
@@ -59,6 +58,10 @@ def process_action(request, user_ID):
     action = request.POST.get('action', '').strip()
     group_id = request.POST.get('group_id', '0').strip()
     gfp = request.POST.get('gfp', '0').strip()
+    logger.debug('Action [{0}]: {1} for group: {2} [gfp={3}]'.format(user_ID,
+                                                                     action,
+                                                                     group_id,
+                                                                     gfp))
 
     # Now hit the database:
     learner = Person.objects.filter(user_ID=user_ID)
@@ -153,6 +156,8 @@ def process_action(request, user_ID):
 
         return HttpResponse('This is not supported yet.')
 
+
+
 def get_group_status(gfp):
     """
     Get's the net (end-result) of the group formation process. Students may have
@@ -230,8 +235,42 @@ def admin_action_process(request, action, gfp):
 
     elif action == 'group-push-enrollment':
         return HttpResponse('GROUP PUSH TODO')
-    return HttpResponse('This is not supported yet.')
 
+    elif action == 'see-members':
+        try:
+            group_id = int(request.POST.get('group_id', '0').strip())
+        except ValueError:
+            return HttpResponse('Invalid group selected.')
+
+        enrolleds = Enrolled.objects.filter(group=group_id, is_enrolled=True)
+        return HttpResponse('<br>'.join([joined.person.display_name for \
+                                                        joined in enrolleds]))
+
+    elif action == 'row-update':
+        group_name = request.POST.get('group_name', '')
+        group_description = request.POST.get('group_description', '')
+        group_capacity = request.POST.get('group_capacity', 0)
+        group_id = request.POST.get('table_group_id', 0)
+        try:
+            group_capacity = int(group_capacity)
+        except ValueError:
+            group_capacity = 0
+
+        new_group, new = Group.objects.get_or_create(gfp=gfp, order=group_id)
+        new_group.name = group_name[0:499]
+        new_group.description = group_description
+        new_group.capacity = group_capacity
+        new_group.save()
+
+        now_time = datetime.datetime.now()
+        message = 'Last saved at {}'.format(now_time.strftime('%H:%M:%S'))
+        if new_group.name == '' and new_group.capacity==0 and \
+                                                   new_group.description == '':
+            new_group.delete()
+            message = 'Group deleted. {}'.format(now_time.strftime('%H:%M:%S'))
+
+
+        return HttpResponse(message)
 
 
 def get_create_student(request, course, gfp):
@@ -267,6 +306,7 @@ def get_create_student(request, course, gfp):
         # Augments the learner with extra fields that might not be there
         learner.user_ID = learner.user_ID or user_ID
         learner.email = learner.email or email
+        learner.role = role
         learner.save()
 
 
@@ -313,8 +353,8 @@ def starting_point(request):
                                                   LTI_id=gfp_ID)
     except Group_Formation_Process.DoesNotExist:
         # The GFP does not exist in our database; create it.
-        gfp = Group_Formation_Process.objects.create(LTI_id=gfp_ID,
-                                                     course=course)
+        gfp = Group_Formation_Process(LTI_id=gfp_ID, course=course)
+        gfp.save()
 
         logger.info('Created GFP: {0}[LTI_id={1}]'.format(course, gfp_ID))
 
@@ -456,14 +496,14 @@ def index(request):
                          # When a new item is created in Brightspace, a code
                          # ID is provided. The course and this code provide
                          # a unique way to identify the course.
-                        'resource_link_id': '24426106',
+                        'resource_link_id': '24426107',
                         #'roles': (u'urn:lti:instrole:ims/lis/Instructor,Admin,'
                         #           'urn:lti:instrole:ims/lis/Admin,Admin'),
                         'roles': u'Instructor',
-                        'roles': u'Student',
-                        'lis_person_contact_email_primary': 'kgdunn@gmail.com4',
+                        #'roles': u'Student',
+                        'lis_person_contact_email_primary': 'kgdunn@gmail.com1',
                         'lis_person_name_full': 'Kevin Dunn',
-                        'user_id': '01a7b8a9-f1c9-430d-b7d9-eca804cbde10_704',
+                        'user_id': '01a7b8a9-f1c9-430d-b7d9-eca804cbde10_701',
                         }
 
         request.META = {'REMOTE_ADDR': '127.0.0.1'}
@@ -480,7 +520,7 @@ def index(request):
         return person_or_error      # Error path if student does not exist
 
     learner = person_or_error
-    logger.debug('Learner entering: {0}'.format(learner))
+    logger.debug('Person entering: {0}'.format(learner))
 
 
     # Do the work here; Return the HTTP Response
@@ -512,13 +552,25 @@ def index(request):
                           'formation/student_summary_view.html', ctx)
 
     elif learner.role == 'Admin':
+
+
         groups = Group.objects.filter(gfp=gfp).order_by('name').order_by('order')
-        _ = add_enrollment_summary(groups, learner)
-        ctx = {'groups': groups,
-               'learner': learner,
-               'gfp': gfp,
-                   }
-        return render(original_request,
-                      'formation/instructor_summary_view.html', ctx)
+        ctx = {'groups': groups, 'learner': learner, 'gfp': gfp,}
+
+        if gfp.setup_mode or groups.count() == 0:
+            no_groups = """
+            {id:1, group_name:"Group 1", capacity:12, description:"Group 1 will ..."},
+            """
+
+            if groups.count() == 0:
+                ctx['no_groups'] = no_groups
+            return render(original_request,
+                          'formation/instructor_create_groups.html',
+                          ctx)
+        else:
+            _ = add_enrollment_summary(groups, learner)
+            return render(original_request,
+                          'formation/instructor_summary_view.html',
+                          ctx)
 
 

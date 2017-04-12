@@ -1,0 +1,228 @@
+{% extends "formation/base.html" %}
+{% block header %}
+<script type="text/javascript">
+$(document).on('click', ".group-admin-button", function() {
+    var postdata = {'csrfmiddlewaretoken': '{{ csrf_token }}',
+                    'action': $(this).attr('id'),
+                    'gfp': {{gfp.id}},};
+    $.ajax({
+        method: "POST",
+        url: '/action/{{learner.user_ID}}/',
+        data: postdata,
+        cache: false,
+        context: $(this),
+        dataType: 'html'
+    })
+    .always(function(html_response) {
+        if ($(this)[0].id == 'group-enrollment-log'){
+            reply = JSON.parse(html_response)
+            var summary_text = "";
+            if (reply.length > 1){
+               summary_text += 'There are ' + reply.length + ' events.';
+            }else if(reply.length == 1){
+               summary_text += 'There is 1 event.';}
+            else{ summary_text = 'No activity has taken place yet.'; }
+            $('#group-extra-info-XHR').html(summary_text + "<table id='group-log' class='group-summary'>");
+            $('#group-log').html("<thead><tr><th>Date and time</th><th>Student</th><th>Action</th><th>Group</th></tr></thead><tbody>");
+            $('#group-log').append('</tbody></table>');
+            var item, col, i, j, text;
+            for (i = 0; i < reply.length; i++) {
+                item = reply[i];
+                text = ('<tr>')
+                for (j=0; j < item.length; j++)
+                    text += '<td>' + item[j] + '</td>';
+                $('#group-log > tbody:last-child').append(text + '</tr>')
+            }
+        }else{
+            $('#group-extra-info-XHR').html(html_response);
+        }
+
+    });
+});
+</script>
+{% endblock %}{# header #}
+
+
+{% block content %}
+There are two ways to create groups for self-enrolment:
+<ol>
+<li>Upload a CSV file with this information. Here is a template to start from. LINK.
+<br>
+    <form method="POST" action="/action/{{learner.user_ID}}/" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="hidden" name="action" value='group-CSV-upload'>
+        <input type="hidden" name="gfp" value="{{gfp.id}}">
+        <label for="id_file_upload">Please upload your CSV file:</label>
+        <input id="id_file_upload" initial_text="Please upload your CSV file" name="file_upload" type="file" required="">
+        <input type="submit" name="Upload">
+    </form>
+<br>
+<li>
+Edit the table below, filling in group names, capacity and a description (optional) for each group. Emptying all text in a row will delete a group.
+
+</ol>
+Once the group settings are accurate, please click the "Create empty groups" button.
+
+
+<br><br>
+
+<div class="clear" id="group-creation-feedback" style="color: orange; float:right; padding-top: 1em; padding-right: 1em;"></div>
+
+<ul class="group-admin-actions">
+<li><button id="add-row" >Add a new row</button></form>
+<li><button id="download-csv">Download CSV of groups as in the table</button>
+</ul>
+<br>
+<div class="clear "id="group-table"></div>
+Click in the cells to edit the group information. (<em>hint</em>: use the "<tt>tab</tt>" key on your keyboard to advance to the next cell)
+<br><br>
+<table style="padding:1em border-spacing:5px">
+<tr>
+    <td>
+
+
+    </td>
+    <td width="300px">
+        <ul class="group-admin-actions"><li>
+        <form method="POST" action="/action/{{learner.user_ID}}/">{% csrf_token %}<input type="hidden" name="action" value='group-CSV-download'><input type="hidden" name="gfp" value="{{gfp.id}}"><button class="group-button" id="group-CSV-download" type="submit">Create empty groups</button></form>
+        </li></ul>
+    </td>
+</tr>
+<tr>
+    <td></td>
+    <td width="300px">This is not reversible. Once clicked, the above names, capacities and descriptions cannot be adjusted.</td>
+</tr>
+</table>
+
+{% endblock %} {# content#}
+
+{% block footer %}
+<script type="text/javascript">
+
+var tabledata = [ {% if groups %}
+                    {%for group in groups %}
+                        { id:{{group.order}}, group_name:"{{group.name}}", capacity:{{group.capacity|floatformat}}, description:'{{group.description}}' },
+                    {% endfor %}
+                  {% else %}
+                    {{no_groups|safe}}
+                  {% endif %}
+    ];
+
+$("#group-table").tabulator({
+    columns:[
+        {title:"Group name", field:"group_name", width: 300, editable:true},
+        {title:"Maximum capacity", field:"capacity", width: 200,  align:"center",  editable:true},
+        {title:"Description (optional)", field:"description", align:"left",   editable:true}
+    ],
+    fitColumns:true,
+    movableRows: true,
+    cellEdited:function(id, column_name, cell_value){
+        //window.console.log(id + " " + column_name + cell_value);
+        var row_data = $("#group-table").tabulator("getRowData", id);
+        var postdata = {'csrfmiddlewaretoken': '{{ csrf_token }}',
+                        'action': 'row-update',
+                        'gfp': {{gfp.id}},
+                        'table_group_id': id,
+                        'group_description': row_data['description'],
+                        'group_capacity': row_data['capacity'],
+                        'group_name': row_data['group_name'],
+                        };
+        $.ajax({
+            method: "POST",
+            url: '/action/{{learner.user_ID}}/',
+            data: postdata,
+            cache: false,
+            context: $(this),
+            dataType: 'html'
+        })
+        .always(function(html_response, postdata) {
+            $('#group-creation-feedback').html(html_response);
+        });
+
+
+    },
+
+});
+$("#group-table").tabulator("setData", tabledata);
+$(window).resize(function(){
+    $("#group-table").tabulator("redraw");
+});
+
+//Add row on "Add Row" button click
+$("#add-row").click(function(){
+    var data = $("#group-table").tabulator("getData");
+    var next_id = 1;
+    for (i = 0; i < data.length; i++) {
+        next_id = Math.max(next_id, data[i]['id']);
+    }
+    $("#group-table").tabulator("updateData", [{id:next_id + 1,  group_name:'Group '+(next_id + 1)}]);
+});
+//Delete row on "Delete Row" button click
+$("#delete-row").click(function(){
+    var selectedData = $("#group-table").tabulator("getSelectedData");
+    if (selectedData){
+        $("#group-table").tabulator("deleteRow", 1);
+    };
+});
+$("#download-csv").click(function(){
+    $("#group-table").tabulator("download", "csv", "groups-draft-names.csv");
+});
+
+//Clear table on "Empty the table" button click
+$("#clear").click(function(){
+    $("#group-table").tabulator("clear");
+});
+
+//Reset table contents on "Reset the table" button click
+$("#reset").click(function(){
+    $("#group-table").tabulator("setData", tabledata);
+});
+
+
+$(document).on('click', ".group-admin-button", function() {
+    var postdata = {'csrfmiddlewaretoken': '{{ csrf_token }}',
+                    'action': $(this).attr('id'),
+                    'gfp': {{gfp.id}},};
+    $.ajax({
+        method: "POST",
+        url: '/action/{{learner.user_ID}}/',
+        data: postdata,
+        cache: false,
+        context: $(this),
+        dataType: 'html'
+    })
+    .always(function(html_response) {
+        if ($(this)[0].id == 'group-enrollment-log'){
+            reply = JSON.parse(html_response)
+            var summary_text = "";
+            if (reply.length > 1){
+               summary_text += 'There are ' + reply.length + ' events.';
+            }else if(reply.length == 1){
+               summary_text += 'There is 1 event.';}
+            else{ summary_text = 'No activity has taken place yet.'; }
+            $('#group-extra-info-XHR').html(summary_text + "<table id='group-log' class='group-summary'>");
+            $('#group-log').html("<thead><tr><th>Date and time</th><th>Student</th><th>Action</th><th>Group</th></tr></thead><tbody>");
+            $('#group-log').append('</tbody></table>');
+            var item, col, i, j, text;
+            for (i = 0; i < reply.length; i++) {
+                item = reply[i];
+                text = ('<tr>')
+                for (j=0; j < item.length; j++)
+                    text += '<td>' + item[j] + '</td>';
+                $('#group-log > tbody:last-child').append(text + '</tr>')
+            }
+        }else{
+            $('#group-extra-info-XHR').html(html_response);
+        }
+
+    });
+});
+</script>
+{% endblock %}
+
+
+
+
+
+
+

@@ -1,10 +1,32 @@
 Groups TODO
 --------
+
+Admin table:
+* Maximum capacity: error on non-integer
+* Add group
+* DElete row
+* Reorder row: call the function, and reorder all rows in the database
+
+$("#example-table").tabulator({
+    rowMoved:function(id, data, row, index){
+        //id - the id of the row
+        //data - the data for the row
+        //row - the DOM element of the row
+        //index - new position of row in table
+    }
+});
+
+
+
 Can be prefilled:
 Longer term: waitlist
 Import names from CSV
 
+The "The cut-off date and time to join, or leave, a" shows in Admin view in my sandbox
 
+Handle : view as student in an appropriate way
+What happens to a ``Person`` between two different course instances?
+LoggingGS
 
 ----
 Check what happens if Admin role person uses "View as Student"
@@ -13,14 +35,9 @@ Make it prettier: student version
  * check on mobile?
  * give feedback on what has happened in XHR
 
-Admin view: 1. Export to CSV
-            2. Export the Log
-            3. Table display of enrollments
-
-Add logging to display to admin
 Add admin display summary, with links to show the students listed in a group
-Admin view to process and uploaded CSV file
-Admin: download CSV view
+Admin view to process and uploaded CSV file of given students, and a rough allocation
+
 
 
 =====
