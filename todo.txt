@@ -1,12 +1,12 @@
 Groups TODO
 --------
 
+Upload CSV template
+
 Admin table:
 * Maximum capacity: error on non-integer
-* Add group
-* DElete row
 * Reorder row: call the function, and reorder all rows in the database
-
+* but then process teh group id's again
 $("#example-table").tabulator({
     rowMoved:function(id, data, row, index){
         //id - the id of the row

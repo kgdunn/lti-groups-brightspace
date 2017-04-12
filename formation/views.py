@@ -16,6 +16,7 @@ from collections import namedtuple, defaultdict
 import datetime
 import json
 import csv
+import codecs
 
 # Logging
 import logging
@@ -232,7 +233,6 @@ def admin_action_process(request, action, gfp):
                 writer.writerow([student.email, group_key.name, action])
         return response
 
-
     elif action == 'group-push-enrollment':
         return HttpResponse('GROUP PUSH TODO')
 
@@ -246,6 +246,8 @@ def admin_action_process(request, action, gfp):
         return HttpResponse('<br>'.join([joined.person.display_name for \
                                                         joined in enrolleds]))
 
+    # These action occur when admin is setting up groups
+
     elif action == 'row-update':
         group_name = request.POST.get('group_name', '')
         group_description = request.POST.get('group_description', '')
@@ -256,21 +258,102 @@ def admin_action_process(request, action, gfp):
         except ValueError:
             group_capacity = 0
 
-        new_group, new = Group.objects.get_or_create(gfp=gfp, order=group_id)
-        new_group.name = group_name[0:499]
-        new_group.description = group_description
-        new_group.capacity = group_capacity
-        new_group.save()
+
+        group = Group.objects.filter(gfp=gfp, order=group_id)
+        if group.count() >= 1: # the ">" case shouldn't occur
+            group = group[0]
+        else:
+            # The Group does not exist in our database; create it
+            group = Group.objects.create(gfp=gfp, order=group_id)
+            logger.info('Created group in gfp={0}[id={1}]'.format(gfp,
+                                                                  group.id))
+
+        group.name = group_name[0:499]
+        group.description = group_description
+        group.capacity = group_capacity
+        group.save()
 
         now_time = datetime.datetime.now()
         message = 'Last saved at {}'.format(now_time.strftime('%H:%M:%S'))
-        if new_group.name == '' and new_group.capacity==0 and \
-                                                   new_group.description == '':
-            new_group.delete()
+        if group.name == '' and group.capacity==0 and group.description == '':
+            group.delete()
             message = 'Group deleted. {}'.format(now_time.strftime('%H:%M:%S'))
 
 
         return HttpResponse(message)
+
+    elif action == 'group-CSV-upload':
+        groups = [] # what we will return to the UI
+        message = ''
+        now = datetime.datetime.now()
+        csvfile = request.FILES.get('file_upload')
+        filename = '/tmp/tmp-csv-{0}-{1}-{2}-{3}.csv'.format(now.hour,
+                                                             now.minute,
+                                                             now.second,
+                                                             now.microsecond)
+        with open(filename,'wb+') as destination:
+            for chunk in csvfile.chunks():
+                destination.write(chunk)
+
+        with open(filename, 'rt') as csvfile:
+            reader = csv.reader(csvfile)
+
+            for row in reader:
+                if reader.line_num == 1:
+                    mapper = {}
+                    for idx, cell in enumerate(row):
+                        cell = cell.lower()
+                        if 'name' in cell:
+                            mapper[idx] = 'name'
+                        elif 'capacity' in cell:
+                            mapper[idx] = 'capacity'
+                        elif 'description' in cell:
+                            mapper[idx] = 'description'
+
+                    continue
+
+                group = {'gfp': gfp,
+                         'order': reader.line_num}
+                for idx, cell in enumerate(row):
+                    try:
+                        group[mapper[idx]] = cell
+                    except KeyError:
+                        message += ('Too many columns found when processing row'
+                                    ' {0}<br>').format(reader.line_num)
+                        continue
+
+                    if mapper[idx] == 'capacity':
+                        try:
+                            group[mapper[idx]] = int(cell)
+                        except ValueError:
+                            message += ('The group capacity in line {0} could '
+                                        'not be converted to a number.<br>')\
+                                                    .format(reader.line_num)
+                groups.append(group)
+
+
+        if message:
+            message += '<br>Please <a href="/">click here</a> to return.'
+            return HttpResponse(message)
+
+        else:
+            # Only do this at the end; if the CSV was successfully read
+            for group in groups:
+                new_group = Group.objects.create(**group)
+                new_group.save()
+            return HttpResponseRedirect('/')
+
+    elif action == 'clear-everything':
+        # Without prompting, delete everything for this gfp:
+        Group.objects.filter(gfp=gfp).delete()
+        Tracking.objects.filter(gfp=gfp).delete()
+        return HttpResponseRedirect('/')
+
+
+
+    # end: if-elif-elif-elif-...
+
+
 
 
 def get_create_student(request, course, gfp):
@@ -559,7 +642,8 @@ def index(request):
 
         if gfp.setup_mode or groups.count() == 0:
             no_groups = """
-            {id:1, group_name:"Group 1", capacity:12, description:"Group 1 will ..."},
+            {id:1, group_name:"Group 1 (created if there are no groups)",
+            capacity:12, description:"Group 1 will ..."},
             """
 
             if groups.count() == 0:

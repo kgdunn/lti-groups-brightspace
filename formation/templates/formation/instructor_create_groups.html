@@ -44,6 +44,14 @@ $(document).on('click', ".group-admin-button", function() {
 
 
 {% block content %}
+<div id='group-clear-all' style="float: right">
+    <ul class="group-admin-actions">
+        <li>
+        <form method="POST" action="/action/{{learner.user_ID}}/">{% csrf_token %}<input type="hidden" name="action" value='clear-everything'>
+        <input type="hidden" name="gfp" value="{{gfp.id}}">
+        <button class="group-button" id="clear-everything" type="submit">Clear everything and start over</button></form>
+        </li></ul>
+</div>
 There are two ways to create groups for self-enrolment:
 <ol>
 <li>Upload a CSV file with this information. Here is a template to start from. LINK.
@@ -53,10 +61,9 @@ There are two ways to create groups for self-enrolment:
         <input type="hidden" name="action" value='group-CSV-upload'>
         <input type="hidden" name="gfp" value="{{gfp.id}}">
         <label for="id_file_upload">Please upload your CSV file:</label>
-        <input id="id_file_upload" initial_text="Please upload your CSV file" name="file_upload" type="file" required="">
+        <input id="id_file_upload" initial_text="Please upload your CSV file" name="file_upload" type="file" required="" style="display: inline">
         <input type="submit" name="Upload">
     </form>
-<br>
 <li>
 Edit the table below, filling in group names, capacity and a description (optional) for each group. Emptying all text in a row will delete a group.
 
@@ -115,7 +122,7 @@ $("#group-table").tabulator({
         {title:"Description (optional)", field:"description", align:"left",   editable:true}
     ],
     fitColumns:true,
-    movableRows: true,
+    <!--movableRows: true,-->
     cellEdited:function(id, column_name, cell_value){
         //window.console.log(id + " " + column_name + cell_value);
         var row_data = $("#group-table").tabulator("getRowData", id);
@@ -168,55 +175,7 @@ $("#download-csv").click(function(){
     $("#group-table").tabulator("download", "csv", "groups-draft-names.csv");
 });
 
-//Clear table on "Empty the table" button click
-$("#clear").click(function(){
-    $("#group-table").tabulator("clear");
-});
 
-//Reset table contents on "Reset the table" button click
-$("#reset").click(function(){
-    $("#group-table").tabulator("setData", tabledata);
-});
-
-
-$(document).on('click', ".group-admin-button", function() {
-    var postdata = {'csrfmiddlewaretoken': '{{ csrf_token }}',
-                    'action': $(this).attr('id'),
-                    'gfp': {{gfp.id}},};
-    $.ajax({
-        method: "POST",
-        url: '/action/{{learner.user_ID}}/',
-        data: postdata,
-        cache: false,
-        context: $(this),
-        dataType: 'html'
-    })
-    .always(function(html_response) {
-        if ($(this)[0].id == 'group-enrollment-log'){
-            reply = JSON.parse(html_response)
-            var summary_text = "";
-            if (reply.length > 1){
-               summary_text += 'There are ' + reply.length + ' events.';
-            }else if(reply.length == 1){
-               summary_text += 'There is 1 event.';}
-            else{ summary_text = 'No activity has taken place yet.'; }
-            $('#group-extra-info-XHR').html(summary_text + "<table id='group-log' class='group-summary'>");
-            $('#group-log').html("<thead><tr><th>Date and time</th><th>Student</th><th>Action</th><th>Group</th></tr></thead><tbody>");
-            $('#group-log').append('</tbody></table>');
-            var item, col, i, j, text;
-            for (i = 0; i < reply.length; i++) {
-                item = reply[i];
-                text = ('<tr>')
-                for (j=0; j < item.length; j++)
-                    text += '<td>' + item[j] + '</td>';
-                $('#group-log > tbody:last-child').append(text + '</tr>')
-            }
-        }else{
-            $('#group-extra-info-XHR').html(html_response);
-        }
-
-    });
-});
 </script>
 {% endblock %}
 
