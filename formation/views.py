@@ -5,7 +5,6 @@ from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.conf import settings
 from django.utils import timezone
-from django.urls import reverse
 
 # Our imports
 from .models import Person, Course, Group_Formation_Process
