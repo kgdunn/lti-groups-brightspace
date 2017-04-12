@@ -3,6 +3,10 @@ Groups TODO
 
 Upload CSV template
 
+If you are an instructor, but in student mode: indicate that action is recorded
+but nothing has happened (not actually enrolled).
+
+
 Admin table:
 * Maximum capacity: error on non-integer
 * Reorder row: call the function, and reorder all rows in the database

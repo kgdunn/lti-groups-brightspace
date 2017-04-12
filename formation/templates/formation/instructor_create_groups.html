@@ -14,42 +14,27 @@ $(document).on('click', ".group-admin-button", function() {
         dataType: 'html'
     })
     .always(function(html_response) {
-        if ($(this)[0].id == 'group-enrollment-log'){
-            reply = JSON.parse(html_response)
-            var summary_text = "";
-            if (reply.length > 1){
-               summary_text += 'There are ' + reply.length + ' events.';
-            }else if(reply.length == 1){
-               summary_text += 'There is 1 event.';}
-            else{ summary_text = 'No activity has taken place yet.'; }
-            $('#group-extra-info-XHR').html(summary_text + "<table id='group-log' class='group-summary'>");
-            $('#group-log').html("<thead><tr><th>Date and time</th><th>Student</th><th>Action</th><th>Group</th></tr></thead><tbody>");
-            $('#group-log').append('</tbody></table>');
-            var item, col, i, j, text;
-            for (i = 0; i < reply.length; i++) {
-                item = reply[i];
-                text = ('<tr>')
-                for (j=0; j < item.length; j++)
-                    text += '<td>' + item[j] + '</td>';
-                $('#group-log > tbody:last-child').append(text + '</tr>')
-            }
+        if ($(this)[0].id == 'clear-everything'){
+            setTimeout(function() { location.reload(); }, 500);
+        }else if($(this)[0].id == 'group-CSV-upload'){
+            setTimeout(function() { location.reload(); }, 500);
         }else{
             $('#group-extra-info-XHR').html(html_response);
         }
 
     });
+
 });
 </script>
 {% endblock %}{# header #}
 
 
 {% block content %}
-<div id='group-clear-all' style="float: right">
+<div class="group-admin-button" id='clear-everything' style="float: right">
     <ul class="group-admin-actions">
         <li>
-        <form method="POST" action="/action/{{learner.user_ID}}/">{% csrf_token %}<input type="hidden" name="action" value='clear-everything'>
-        <input type="hidden" name="gfp" value="{{gfp.id}}">
-        <button class="group-button" id="clear-everything" type="submit">Clear everything and start over</button></form>
+        <form method="POST" action="#">{% csrf_token %}<input type="hidden" name="action" value='clear-everything'>
+        <input type="hidden" name="gfp" value="{{gfp.id}}"><button class="group-button" id="clear-everything" type="submit">Clear everything and start over</button></form>
         </li></ul>
 </div>
 There are two ways to create groups for self-enrolment:
@@ -59,6 +44,7 @@ There are two ways to create groups for self-enrolment:
     <form method="POST" action="/action/{{learner.user_ID}}/" enctype="multipart/form-data">
         {% csrf_token %}
         <input type="hidden" name="action" value='group-CSV-upload'>
+        <input type="hidden" name="learner" value="{{learner.user_ID}}">
         <input type="hidden" name="gfp" value="{{gfp.id}}">
         <label for="id_file_upload">Please upload your CSV file:</label>
         <input id="id_file_upload" initial_text="Please upload your CSV file" name="file_upload" type="file" required="" style="display: inline">

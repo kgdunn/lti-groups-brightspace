@@ -5,6 +5,7 @@ from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.conf import settings
 from django.utils import timezone
+from django.urls import reverse
 
 # Our imports
 from .models import Person, Course, Group_Formation_Process
@@ -341,13 +342,13 @@ def admin_action_process(request, action, gfp):
             for group in groups:
                 new_group = Group.objects.create(**group)
                 new_group.save()
-            return HttpResponseRedirect('/')
+            return HttpResponse('reload-page')
 
     elif action == 'clear-everything':
         # Without prompting, delete everything for this gfp:
         Group.objects.filter(gfp=gfp).delete()
         Tracking.objects.filter(gfp=gfp).delete()
-        return HttpResponseRedirect('/')
+        return HttpResponse('reload-page')
 
 
 
