@@ -1,0 +1,7 @@
+Group name, Maximum capacity, Description
+Group 1, 42, This group meets every Wednesday morning in IO-234 at 10.45
+Group 2, 29, Do not use commas in your group name or group description. For (hopefully) obvious reasons.
+Group 2, 29, Please avoid quotation marks in this file.
+Group 3, 13, Ensure the numbers in the second column are integers.
+Group 4, 13, Error checking is minimal. Did you notice that duplicate group name? 
+

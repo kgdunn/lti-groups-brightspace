@@ -37,9 +37,9 @@ $(document).on('click', ".group-admin-button", function() {
         <input type="hidden" name="gfp" value="{{gfp.id}}"><button class="group-button" id="clear-everything" type="submit">Clear everything and start over</button></form>
         </li></ul>
 </div>
-There are two ways to create groups for self-enrolment:
+There are two ways to create groups for self-enrolment by students:
 <ol>
-<li>Upload a CSV file with this information. Here is a template to start from. LINK.
+<li>Upload a CSV file with this information. Here is <a href="//lti.connectmv.com/images/group-formation-template.csv">a template to start from</a>.
 <br>
     <form method="POST" action="/action/{{learner.user_ID}}/" enctype="multipart/form-data">
         {% csrf_token %}
@@ -54,7 +54,7 @@ There are two ways to create groups for self-enrolment:
 Edit the table below, filling in group names, capacity and a description (optional) for each group. Emptying all text in a row will delete a group.
 
 </ol>
-Once the group settings are accurate, please click the "Create empty groups" button.
+<!--Once the group settings are accurate, please click the "Create empty groups" button.-->
 
 
 <br><br>

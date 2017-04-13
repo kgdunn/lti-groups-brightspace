@@ -3,6 +3,13 @@ Groups TODO
 
 Upload CSV template
 
+Remove the other admin view and consolidate everything into the table?
+
+Instructor fields to add:
+
+[x] Each student can join more than one group (left unchecked, students can only be in only one of the above groups)
+[x] Give a date/time where enrolment stops: Date _______; Time ______
+
 If you are an instructor, but in student mode: indicate that action is recorded
 but nothing has happened (not actually enrolled).
 

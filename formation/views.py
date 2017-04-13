@@ -341,13 +341,13 @@ def admin_action_process(request, action, gfp):
             for group in groups:
                 new_group = Group.objects.create(**group)
                 new_group.save()
-            return HttpResponse('reload-page')
+            return HttpResponse('Please reload the page to see the changes.')
 
     elif action == 'clear-everything':
         # Without prompting, delete everything for this gfp:
         Group.objects.filter(gfp=gfp).delete()
         Tracking.objects.filter(gfp=gfp).delete()
-        return HttpResponse('reload-page')
+        return HttpResponse('Please reload the page to see the changes.')
 
 
 
