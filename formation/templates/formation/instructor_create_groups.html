@@ -39,7 +39,7 @@ $(document).on('click', ".group-admin-button", function() {
 </div>
 There are two ways to create groups for self-enrolment by students:
 <ol>
-<li>Upload a CSV file with this information. Here is <a href="//lti.connectmv.com/images/group-formation-template.csv">a template to start from</a>.
+<li>Upload a CSV (comma-separated values) file with this information. Here is <a href="//lti.connectmv.com/images/group-formation-template.csv">a template to start from</a>.
 <br>
     <form method="POST" action="/action/{{learner.user_ID}}/" enctype="multipart/form-data">
         {% csrf_token %}
