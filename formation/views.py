@@ -17,7 +17,7 @@ import datetime
 import json
 import time
 import csv
-import codecs
+import magic
 
 # Logging
 import logging
@@ -298,6 +298,11 @@ def admin_action_process(request, action, gfp):
             for chunk in csvfile.chunks():
                 destination.write(chunk)
 
+        if b'ASCII' not in magic.from_file(filename) :
+            return HttpResponse(('Invalid, or unreadable file. '
+                                 'It was not a CSV file.'))
+
+
         with open(filename, 'rt') as csvfile:
             reader = csv.reader(csvfile)
 
@@ -338,7 +343,9 @@ def admin_action_process(request, action, gfp):
 
 
         if message:
-            message += '<br>Please <a href="/">click here</a> to return.'
+            message += ('<br>Please refresh the page and load an improved '
+                        'version of the file.')
+
             return HttpResponse(message)
 
         else:

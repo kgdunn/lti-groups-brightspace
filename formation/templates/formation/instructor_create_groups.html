@@ -22,10 +22,8 @@ $(document).on('click', ".group-admin-button", function() {
     })
     .always(function(html_response, postdata) {
         console.log('Returned with' + html_response);
-        setTimeout(function() { location.reload(); }, 2000);
+        setTimeout(function() { location.reload(); }, 200);
     });
-
-
 });
 $(document).ready(function() {
     var timer = null;
