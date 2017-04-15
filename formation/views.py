@@ -84,6 +84,7 @@ def process_action(request, user_ID):
     # Now we can split off for students vs. instructors, to keep this function
     # overzichtelijk
     if learner.role == 'Admin':
+        time.sleep(1) # prevents a race condition occurring
         return admin_action_process(request, action, gfp)
 
 
@@ -352,7 +353,7 @@ def admin_action_process(request, action, gfp):
         # Without prompting, delete everything for this gfp:
         Group.objects.filter(gfp=gfp).delete()
         Tracking.objects.filter(gfp=gfp).delete()
-        time.sleep(1) # prevents a race condition occurring
+
         return HttpResponse('Please reload GO AWAY 2.'  + str(now_time))
     elif action == 'date-update':
         datestring = request.POST.get('datestring', '2050-12-31 23:59:59')
