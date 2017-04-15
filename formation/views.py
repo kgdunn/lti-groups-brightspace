@@ -344,13 +344,13 @@ def admin_action_process(request, action, gfp):
             for group in groups:
                 new_group = Group.objects.create(**group)
                 new_group.save()
-            return HttpResponse('Please reload the page to see the changes.')
+            return HttpResponse('Please reload GO AWAY 1.')
 
     elif action == 'clear-everything':
         # Without prompting, delete everything for this gfp:
         Group.objects.filter(gfp=gfp).delete()
         Tracking.objects.filter(gfp=gfp).delete()
-        return HttpResponse('Please reload the page to see the changes.')
+        return HttpResponse('Please reload GO AWAY 2.')
     elif action == 'date-update':
         datestring = request.POST.get('datestring', '2050-12-31 23:59:59')
         try:

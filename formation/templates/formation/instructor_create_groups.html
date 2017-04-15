@@ -19,17 +19,17 @@ $(document).on('click', ".group-admin-button", function() {
         context: $(this),
         dataType: 'html'
     })
-    .always(function(html_response) {
+    .success(function(html_response) {
+        var html_response = ''
         if ($(this)[0].id == 'clear-everything'){
             setTimeout(function() {
-                parent.location.href=parent.location.href;
-            }, 500);
-        }else if($(this)[0].id == 'group-CSV-upload'){
-            setTimeout(function() { parent.location.href=parent.location.href; }, 500);
-        }else{
-            $('#group-extra-info-XHR').html(html_response);
-        }
+    location.reload();  //Refresh page
+  }, 1000);
 
+        }
+        else if($(this)[0].id == 'group-CSV-upload'){setTimeout(function() {
+    location.reload();  //Refresh page
+  }, 1000);}
     });
 
 });
@@ -95,7 +95,7 @@ Create groups for self-enrollment in 6 steps:
 <li> b) or, manually edit the table below, filling in group names, capacity and a description (optional) for each group. Emptying all text in a row will delete a group. This approach is better for a small number of groups.
 
 <li>Students can join or leave groups until:
-<input class="group-admin-actions" id="dateFormat" placeholder="dd-mm-YYYY HH:MM" style="border-color: #1c5295; margin-left: 5px"> <span style="color:#aaa"><tt>03-04-2017 16:30</tt></span>
+<input class="group-admin-actions" id="dateFormat" placeholder="dd-mm-YYYY HH:MM" style="border-color: #1c5295; margin-left: 5px">
 <!--<span style="color:#aaa">e.g 3 April 2017 at 16:30 should be entered as: <tt>dd-mm-yyyy HH:MM</tt></span>-->
 
 <li>Check the box if students are allowed to join more than one group: <input class="group-XHR-update" type="checkbox" name="multi_group" value="multi_group_yes" style="border-color: #1c5295; transform: scale(1.5); margin-left: 5px" />
@@ -110,9 +110,8 @@ Create groups for self-enrollment in 6 steps:
 <span class="clear">&nbsp;<span class="group-creation-feedback" style="color: orange;  padding-top: 1em; padding-right: 1em;"></span></span>
 
 <div class="clear" id="group-table" style="margin-left: 20px; margin-right: 20px"></div>
-<span class="clear">&nbsp;<span class="group-creation-feedback" style="color: orange;  padding-top: 1em; padding-right: 1em;"></span></span>
 
-Click in the cells to edit the group information. (<em>hint</em>: use the "<tt>tab</tt>" key on your keyboard to advance to the next cell).</li>
+<span style="padding-left:20px">Click in the cells to edit the group information. (<em>hint</em>: use the "<tt>tab</tt>" key on your keyboard to advance to the next cell). </span>
 <ul class="group-admin-actions">
 
 <li><button id="add-row" >Add a new row to the table above</button></form>

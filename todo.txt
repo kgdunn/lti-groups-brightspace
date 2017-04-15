@@ -3,7 +3,11 @@ Groups TODO
 
 Clear button: refreshes?
 CSV upload: afters it should force an auto refresh
+Push back settings that already exist
 
+Student view when there are no groups.
+
+Instructor view if no groups pushed through
 
 
 Show the actual enrollments in a group
