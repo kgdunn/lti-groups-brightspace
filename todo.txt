@@ -1,7 +1,7 @@
 Groups TODO
 --------
 Error message if a CSV is blank, or only contains a single row
-
+Reload existing DB data: dates, gfp name, etc
 CSV upload: afters it should force an auto refresh
 Student view when there are no groups.
 Instructor view if no groups pushed through

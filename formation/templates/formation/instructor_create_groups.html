@@ -74,6 +74,8 @@ Create groups for self-enrollment in 6 steps:
         <input type="hidden" name="action" value='group-CSV-upload'>
         <input type="hidden" name="learner" value="{{learner.user_ID}}">
         <input type="hidden" name="gfp" value="{{gfp.id}}">
+        <input type="hidden" name="context_id" value="{{course.label}}">
+        <input type="hidden" name="resource_link_id" value="{{gfp.LTI_id}}">
         <input id="id_file_upload" initial_text="Please upload your CSV file" name="file_upload" type="file" required="" accept=".csv" style="display: inline">
         <input type="submit" name="Upload">
 

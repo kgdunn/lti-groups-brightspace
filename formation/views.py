@@ -696,7 +696,8 @@ def index(request):
 
 
         groups = Group.objects.filter(gfp=gfp).order_by('name').order_by('order')
-        ctx = {'groups': groups, 'learner': learner, 'gfp': gfp,}
+        ctx = {'groups': groups, 'learner': learner, 'gfp': gfp,
+               'course': course}
 
 
         if gfp.setup_mode or groups.count() == 0:
