@@ -59,6 +59,7 @@ def process_action(request, user_ID):
     action = request.POST.get('action', '').strip()
     group_id = request.POST.get('group_id', '0').strip()
     gfp = request.POST.get('gfp', '0').strip()
+    logger.debug(str(request.POST))
     logger.debug('Action [{0}]: {1} for group: {2} [gfp={3}]'.format(user_ID,
                                                                      action,
                                                                      group_id,
