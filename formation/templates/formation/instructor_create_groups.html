@@ -1,5 +1,10 @@
 {% extends "formation/base.html" %}
 {% block header %}
+<style>
+.instructor-groups li{
+   padding-bottom:10px
+}
+</style>
 
 <script type="text/javascript">
 $(document).on('click', ".group-admin-button", function() {
@@ -26,6 +31,36 @@ $(document).on('click', ".group-admin-button", function() {
     });
 
 });
+$(document).ready(function() {
+    var timer = null;
+    $('input.group-XHR-update').on("keydown click", function(event) {
+        if (timer){
+            window.clearTimeout(timer);
+        };
+        timer = window.setTimeout(function(event)
+        {
+            var postdata = {'csrfmiddlewaretoken': '{{ csrf_token }}',
+                            'gfp': {{gfp.id}},
+                            'action': 'admin-settings-updated'};
+            $('input.group-XHR-update').each(function() {
+                postdata[$(this).attr('name')] = $(this).val() + '|' + $(this).is(':checked');
+            });
+
+            $.ajax(
+            {
+                type: "POST",
+                url: '/action/{{learner.user_ID}}/',
+                data: postdata,
+                cache: false,
+            })
+            .always(function(html_response, postdata) {
+                    $('.group-creation-feedback').fadeIn()
+                    $('.group-creation-feedback').html(html_response).fadeOut(2000);
+                });
+
+        }, 1000);
+    });
+});
 </script>
 {% endblock %}{# header #}
 
@@ -39,7 +74,7 @@ $(document).on('click', ".group-admin-button", function() {
         </li></ul>
 </div>
 Create groups for self-enrollment in 6 steps:
-<ol>
+<ol class="instructor-groups">
 <li> a) Either upload a CSV (comma-separated values) file with this information. Here is <a href="//lti.connectmv.com/images/group-formation-template.csv">a template to start from</a>. This is useful if you have many groups to upload.
     <form method="POST" action="/action/{{learner.user_ID}}/" enctype="multipart/form-data">
         {% csrf_token %}
@@ -54,45 +89,38 @@ Create groups for self-enrollment in 6 steps:
     Uploading a second CSV file will append to the table below.
 </ol>
 
-<ol start="1">
+<ol start="1" class="instructor-groups">
 <li> b) or, manually edit the table below, filling in group names, capacity and a description (optional) for each group. Emptying all text in a row will delete a group.
 
 <li>Students can join or leave groups until:
-<input class="group-admin-actions" id="dateFormat" placeholder="dd-mm-YYYY HH:MM" style="border-color: #1c5295;">
+<input class="group-admin-actions" id="dateFormat" placeholder="dd-mm-YYYY HH:MM" style="border-color: #1c5295; margin-left: 5px"> <span style="color:#aaa"><tt>03-04-2017 16:30</tt></span>
 <!--<span style="color:#aaa">e.g 3 April 2017 at 16:30 should be entered as: <tt>03-04-2017 16:30</tt></span>-->
 
-<li>Check the box if students are allowed to join more than one group:
-<li>Enter a category name that will be used in Brightspace: <input placeholder="e.g. Groups for Arduino workshop" style="border-color: #1c5295; width:20em">
+<li>Check the box if students are allowed to join more than one group: <input class="group-XHR-update" type="checkbox" name="multi_group" value="multi_group_yes" style="border-color: #1c5295; transform: scale(1.5); margin-left: 5px" checked/>
+
+<li>Enter a category name that will be used in Brightspace: <input class="group-XHR-update" id="category_name" name="category_name" placeholder="e.g. Groups for Arduino workshop" style="border-color: #1c5295; width:20em; margin-left: 5px">
 
 <li>Fine-tune the details in the table.
 <li>Click the "Finish the group set up" button below. <span style="color:darkorange">Note: after this click you cannot edit the details about each group.</span>
 </ol>
 <!--Once the group settings are accurate, please click the "Create empty groups" button.-->
 
+<span class="clear">&nbsp;<span class="group-creation-feedback" style="color: orange;  padding-top: 1em; padding-right: 1em;"></span></span>
 
-<br><br>
-
-<div class="clear" id="group-creation-feedback" style="color: orange; float:right; padding-top: 1em; padding-right: 1em;"></div>
-
+<div class="clear" id="group-table" style="margin-left: 20px; margin-right: 20px"></div>
+<span class="clear">&nbsp;<span class="group-creation-feedback" style="color: orange;  padding-top: 1em; padding-right: 1em;"></span></span>
+<br>
 <ul class="group-admin-actions">
 <li><button id="add-row" >Add a new row</button></form>
 <li><button id="download-csv">Download CSV of groups as in the table</button>
+<li>Click in the cells to edit the group information. (<em>hint</em>: use the "<tt>tab</tt>" key on your keyboard to advance to the next cell).
 </ul>
-<br>
-<div class="clear "id="group-table"></div>
-Click in the cells to edit the group information. (<em>hint</em>: use the "<tt>tab</tt>" key on your keyboard to advance to the next cell).
-
-
-<br><br>
-
 
 
 <br><br>
 <table style="padding:1em border-spacing:5px">
 <tr>
     <td>
-
-
     </td>
     <td width="300px">
         <ul class="group-admin-actions"><li>
@@ -129,7 +157,6 @@ $("#group-table").tabulator({
     fitColumns:true,
     <!--movableRows: true,-->
     cellEdited:function(id, column_name, cell_value){
-        //window.console.log(id + " " + column_name + cell_value);
         var row_data = $("#group-table").tabulator("getRowData", id);
         var postdata = {'csrfmiddlewaretoken': '{{ csrf_token }}',
                         'action': 'row-update',
@@ -148,7 +175,8 @@ $("#group-table").tabulator({
             dataType: 'html'
         })
         .always(function(html_response, postdata) {
-            $('#group-creation-feedback').html(html_response);
+            $('.group-creation-feedback').fadeIn()
+            $('.group-creation-feedback').html(html_response).fadeOut(3000);
         });
 
 
@@ -181,10 +209,8 @@ $("#download-csv").click(function(){
 });
 </script>
 
-<!-- Date/time picker; MIT licensed
-     https://chmln.github.io/flatpickr/examples/ -->
+<!-- Date/time picker; MIT licensed https://chmln.github.io/flatpickr/examples/ -->
 <script>
-
     var reg = flatpickr('#flatpickr');
     Flatpickr.l10ns.default.firstDayOfWeek = 1;
 
@@ -193,14 +219,31 @@ $("#download-csv").click(function(){
        {dateFormat: 'd-m-Y H:i',
         minDate: "today",
         enableTime: true,
-        minuteIncrement: 15,
+        minuteIncrement: 5,
         enabletime: true,
         time_24hr:true,
         timeFormat: "H:i",
         weekNumbers: true,
         onChange: function(dateObj, dateStr, instance)
             {
-                alert(dateObj)
+                var postdata = {'csrfmiddlewaretoken': '{{ csrf_token }}',
+                                'action': 'date-update',
+                                'gfp': {{gfp.id}},
+                                'datestring': dateStr,
+                                };
+                $.ajax({
+                    method: "POST",
+                    url: '/action/{{learner.user_ID}}/',
+                    data: postdata,
+                    cache: false,
+                    context: $(this),
+                    dataType: 'html'
+                })
+                .always(function(html_response, postdata) {
+                    $('.group-creation-feedback').fadeIn()
+                    $('.group-creation-feedback').html(html_response).fadeOut(2000);
+                });
+
             },
        });
 

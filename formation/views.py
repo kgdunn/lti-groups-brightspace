@@ -206,6 +206,7 @@ def admin_action_process(request, action, gfp):
 
     Must return an HttpResponse object here.
     """
+    now_time = datetime.datetime.now()
     if action =='group-enrollment-log':
         # Gets a log history for display in the browser. Returns a JSON object.
 
@@ -273,7 +274,7 @@ def admin_action_process(request, action, gfp):
         group.capacity = group_capacity
         group.save()
 
-        now_time = datetime.datetime.now()
+
         message = 'Last saved at {}'.format(now_time.strftime('%H:%M:%S'))
         if group.name == '' and group.capacity==0 and group.description == '':
             group.delete()
@@ -350,6 +351,29 @@ def admin_action_process(request, action, gfp):
         Group.objects.filter(gfp=gfp).delete()
         Tracking.objects.filter(gfp=gfp).delete()
         return HttpResponse('Please reload the page to see the changes.')
+    elif action == 'date-update':
+        datestring = request.POST.get('datestring', '2050-12-31 23:59:59')
+        try:
+            dt_stop = datetime.datetime.strptime(datestring, "%d-%m-%Y %H:%M")
+        except ValueError:
+            return HttpResponse('Invalid date and time; please try again.')
+
+        gfp.dt_group_selection_stops = dt_stop
+        gfp.save()
+        message = 'Date/time saved at {}'.format(now_time.strftime('%H:%M:%S'))
+        return HttpResponse(message)
+    elif action == 'admin-settings-updated':
+        category_name = request.POST.get('category_name', '|')
+        multi_group = request.POST.get('multi_group', '|false')
+        category_name = ''.join(category_name.split('|')[0:-1])
+        multi_group = multi_group.split('|')[1].lower()
+        multi_group = multi_group == 'true'
+        gfp.allow_multi_enrol = multi_group
+        gfp.title = category_name
+        gfp.save()
+        message = 'Updated settings: {}'.format(now_time.strftime('%H:%M:%S'))
+        return HttpResponse(message)
+
 
 
 
