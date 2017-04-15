@@ -21,9 +21,11 @@ $(document).on('click', ".group-admin-button", function() {
     })
     .always(function(html_response) {
         if ($(this)[0].id == 'clear-everything'){
-            setTimeout(function() { location.reload(); }, 500);
+            setTimeout(function() {
+                parent.location.href=parent.location.href;
+            }, 500);
         }else if($(this)[0].id == 'group-CSV-upload'){
-            setTimeout(function() { location.reload(); }, 500);
+            setTimeout(function() { parent.location.href=parent.location.href; }, 500);
         }else{
             $('#group-extra-info-XHR').html(html_response);
         }
@@ -75,7 +77,7 @@ $(document).ready(function() {
 </div>
 Create groups for self-enrollment in 6 steps:
 <ol class="instructor-groups">
-<li> a) Either upload a CSV (comma-separated values) file with this information. Here is <a href="//lti.connectmv.com/images/group-formation-template.csv">a template to start from</a>. This is useful if you have many groups to upload.
+<li> a) Either upload a CSV (comma-separated values) file with the information shown in the table. Here is <a href="//lti.connectmv.com/images/group-formation-template-brightspace.csv">a template to start from</a>. This approach is useful if you have many groups to upload.
     <form method="POST" action="/action/{{learner.user_ID}}/" enctype="multipart/form-data">
         {% csrf_token %}
         <input type="hidden" name="action" value='group-CSV-upload'>
@@ -90,18 +92,18 @@ Create groups for self-enrollment in 6 steps:
 </ol>
 
 <ol start="1" class="instructor-groups">
-<li> b) or, manually edit the table below, filling in group names, capacity and a description (optional) for each group. Emptying all text in a row will delete a group.
+<li> b) or, manually edit the table below, filling in group names, capacity and a description (optional) for each group. Emptying all text in a row will delete a group. This approach is better for a small number of groups.
 
 <li>Students can join or leave groups until:
 <input class="group-admin-actions" id="dateFormat" placeholder="dd-mm-YYYY HH:MM" style="border-color: #1c5295; margin-left: 5px"> <span style="color:#aaa"><tt>03-04-2017 16:30</tt></span>
-<!--<span style="color:#aaa">e.g 3 April 2017 at 16:30 should be entered as: <tt>03-04-2017 16:30</tt></span>-->
+<!--<span style="color:#aaa">e.g 3 April 2017 at 16:30 should be entered as: <tt>dd-mm-yyyy HH:MM</tt></span>-->
 
-<li>Check the box if students are allowed to join more than one group: <input class="group-XHR-update" type="checkbox" name="multi_group" value="multi_group_yes" style="border-color: #1c5295; transform: scale(1.5); margin-left: 5px" checked/>
+<li>Check the box if students are allowed to join more than one group: <input class="group-XHR-update" type="checkbox" name="multi_group" value="multi_group_yes" style="border-color: #1c5295; transform: scale(1.5); margin-left: 5px" />
 
 <li>Enter a category name that will be used in Brightspace: <input class="group-XHR-update" id="category_name" name="category_name" placeholder="e.g. Groups for Arduino workshop" style="border-color: #1c5295; width:20em; margin-left: 5px">
 
-<li>Fine-tune the details in the table.
-<li>Click the "Finish the group set up" button below. <span style="color:darkorange">Note: after this click you cannot edit the details about each group.</span>
+<li>Fine-tune the details in the table. Refreshing this page will confirm the latest setting in our database.
+<li>Click the "Finish the group set up" button below. <span style="color:darkorange">Note: after this click you cannot change the details about each group.</span>
 </ol>
 <!--Once the group settings are accurate, please click the "Create empty groups" button.-->
 
@@ -109,19 +111,20 @@ Create groups for self-enrollment in 6 steps:
 
 <div class="clear" id="group-table" style="margin-left: 20px; margin-right: 20px"></div>
 <span class="clear">&nbsp;<span class="group-creation-feedback" style="color: orange;  padding-top: 1em; padding-right: 1em;"></span></span>
-<br>
+
+Click in the cells to edit the group information. (<em>hint</em>: use the "<tt>tab</tt>" key on your keyboard to advance to the next cell).</li>
 <ul class="group-admin-actions">
-<li><button id="add-row" >Add a new row</button></form>
-<li><button id="download-csv">Download CSV of groups as in the table</button>
-<li>Click in the cells to edit the group information. (<em>hint</em>: use the "<tt>tab</tt>" key on your keyboard to advance to the next cell).
+
+<li><button id="add-row" >Add a new row to the table above</button></form>
+<li><button id="download-csv">Download CSV of groups, as currently shown in the table</button>
+
 </ul>
 
 
 <br><br>
-<table style="padding:1em border-spacing:5px">
+<table style="padding:1em border-spacing:5px; margin-left:20px">
 <tr>
-    <td>
-    </td>
+    <td width="300px">Once you click this button the group names, capacities and descriptions are fixed, and cannot be adjusted. <em>Hint</em>: Download a CSV of these group details to save time in the future.</td>
     <td width="300px">
         <ul class="group-admin-actions"><li>
         <form method="POST" action="/action/{{learner.user_ID}}/">{% csrf_token %}<input type="hidden" name="action" value='group-CSV-download'><input type="hidden" name="gfp" value="{{gfp.id}}"><button class="group-button" id="group-CSV-download" type="submit">Finish the group set up</button></form>
@@ -130,7 +133,7 @@ Create groups for self-enrollment in 6 steps:
 </tr>
 <tr>
     <td></td>
-    <td width="300px">Once you click this button the group names, capacities and descriptions are fixed, and cannot be adjusted. <em>Hint</em>: Download a CSV of these group details to save time in the future.</td>
+
 </tr>
 </table>
 

@@ -1,12 +1,10 @@
 Groups TODO
 --------
 
+Clear button: refreshes?
+CSV upload: afters it should force an auto refresh
 
 
-Validate date with AJAX
-If valid, store it as well, else return: invalid date
-[x] Each student can join more than one group (left unchecked, students can only be in only one of the above groups)
- Group selection is to be available starting at: __ March 2017, HH:MM.
 
 Show the actual enrollments in a group
 
