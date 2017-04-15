@@ -345,8 +345,10 @@ def admin_action_process(request, action, gfp):
 
 
         if message:
-            message += ('<br>Please refresh the page and load an improved '
-                        'version of the file.')
+            message = '<br>'.join(set(message.split('<br>')))
+            # gets the unique elements only
+            message += ('<br>Please refresh this page and load an improved '
+                        'version of the CSV file.')
 
             return HttpResponse(message)
 
@@ -357,7 +359,7 @@ def admin_action_process(request, action, gfp):
                 new_group.save()
             logger.debug('gfp[{}]: successfully loaded the CSV at {}'.format(
                             gfp.id, now_time))
-            return None
+            return HttpResponse(b'')
 
     elif action == 'clear-everything':
         # Without prompting, delete everything for this gfp:
@@ -642,11 +644,11 @@ def index(request):
                                           original_request.POST.get('Upload'):
         error_message = process_action(original_request,
                                        original_request.POST.get('learner', ''))
-        if error_message:
+        if error_message.getvalue():
             return HttpResponse(error_message)
         else:
             # Return them back to this function, a second time, to continue on.
-            return HttpResponseRedirect('')
+            return HttpResponseRedirect('/')
 
 
     person_or_error, course, gfp = starting_point(request)
