@@ -65,8 +65,7 @@ $(document).ready(function() {
 <div class="group-admin-button" id='clear-everything' style="float: right">
     <ul class="group-admin-actions">
         <li>
-        <form method="POST" action="#">{% csrf_token %}<input type="hidden" name="action" value='clear-everything'>
-        <input type="hidden" name="gfp" value="{{gfp.id}}"><button class="group-button" id="clear-everything" type="submit">Clear everything and start over</button></form>
+        <input type="hidden" name="gfp" value="{{gfp.id}}"><button class="group-button" id="clear-everything" type="submit">Clear everything and start over</button>
         </li></ul>
 </div>
 Create groups for self-enrollment in 6 steps:
