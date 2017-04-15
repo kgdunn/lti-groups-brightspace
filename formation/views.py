@@ -350,7 +350,7 @@ def admin_action_process(request, action, gfp):
         # Without prompting, delete everything for this gfp:
         Group.objects.filter(gfp=gfp).delete()
         Tracking.objects.filter(gfp=gfp).delete()
-        return HttpResponse('Please reload GO AWAY 2.')
+        return HttpResponse('Please reload GO AWAY 2.'  + str(now_time))
     elif action == 'date-update':
         datestring = request.POST.get('datestring', '2050-12-31 23:59:59')
         try:

@@ -8,6 +8,7 @@
 
 <script type="text/javascript">
 $(document).on('click', ".group-admin-button", function() {
+    var timer = null;
     var postdata = {'csrfmiddlewaretoken': '{{ csrf_token }}',
                     'action': $(this).attr('id'),
                     'gfp': {{gfp.id}},};
@@ -19,18 +20,10 @@ $(document).on('click', ".group-admin-button", function() {
         context: $(this),
         dataType: 'html'
     })
-    .success(function(html_response) {
-        var html_response = ''
-        console.log('Returned with' + html_response)
-        if ($(this)[0].id == 'clear-everything'){
-            setTimeout(function() {
-    location.reload();  //Refresh page
-  }, 5000);
-
-        }
-        else if($(this)[0].id == 'group-CSV-upload'){setTimeout(function() {
-    location.reload();  //Refresh page
-  }, 1000);}
+    .always(function(html_response) {
+        console.log('Returned with' + html_response);
+        if (timer){window.clearTimeout(timer); };
+        timer = window.setTimeout( function() { location.reload(); alert('Reloaded')  }, 500);
     });
 
 });
