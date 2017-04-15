@@ -299,6 +299,8 @@ def admin_action_process(request, action, gfp):
             reader = csv.reader(csvfile)
 
             for row in reader:
+                if not(row):
+                    continue # if the row is empty, ignore it
                 if reader.line_num == 1:
                     mapper = {}
                     for idx, cell in enumerate(row):
@@ -313,10 +315,10 @@ def admin_action_process(request, action, gfp):
                     continue
 
                 group = {'gfp': gfp,
-                         'order': reader.line_num}
+                         'order': gfp.next_id()}
                 for idx, cell in enumerate(row):
                     try:
-                        group[mapper[idx]] = cell
+                        group[mapper[idx]] = str.strip(cell)
                     except KeyError:
                         message += ('Too many columns found when processing row'
                                     ' {0}<br>').format(reader.line_num)

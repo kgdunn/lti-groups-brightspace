@@ -117,6 +117,11 @@ class Group_Formation_Process(models.Model):
     def __str__(self):
         return 'GFP[{0}]::[{1}]'.format(self.course.label, self.LTI_id)
 
+    def next_id(self):
+        groups = Group.objects.filter(gfp=self)
+        all_orders = [g.order for g in groups]
+        return (max(all_orders) + 1)
+
 
 @python_2_unicode_compatible
 class Group(models.Model):

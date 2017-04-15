@@ -1,5 +1,6 @@
 {% extends "formation/base.html" %}
 {% block header %}
+
 <script type="text/javascript">
 $(document).on('click', ".group-admin-button", function() {
     var postdata = {'csrfmiddlewaretoken': '{{ csrf_token }}',
@@ -37,22 +38,34 @@ $(document).on('click', ".group-admin-button", function() {
         <input type="hidden" name="gfp" value="{{gfp.id}}"><button class="group-button" id="clear-everything" type="submit">Clear everything and start over</button></form>
         </li></ul>
 </div>
-There are two ways to create groups for self-enrolment by students:
+Create groups for self-enrollment in 6 steps:
 <ol>
-<li>Upload a CSV (comma-separated values) file with this information. Here is <a href="//lti.connectmv.com/images/group-formation-template.csv">a template to start from</a>.
-<br>
+<li> a) Either upload a CSV (comma-separated values) file with this information. Here is <a href="//lti.connectmv.com/images/group-formation-template.csv">a template to start from</a>. This is useful if you have many groups to upload.
     <form method="POST" action="/action/{{learner.user_ID}}/" enctype="multipart/form-data">
         {% csrf_token %}
         <input type="hidden" name="action" value='group-CSV-upload'>
         <input type="hidden" name="learner" value="{{learner.user_ID}}">
         <input type="hidden" name="gfp" value="{{gfp.id}}">
-        <label for="id_file_upload">Please upload your CSV file:</label>
+        <!--<label for="id_file_upload">Please upload your CSV file:</label>-->
         <input id="id_file_upload" initial_text="Please upload your CSV file" name="file_upload" type="file" required="" style="display: inline">
         <input type="submit" name="Upload">
-    </form>
-<li>
-Edit the table below, filling in group names, capacity and a description (optional) for each group. Emptying all text in a row will delete a group.
 
+    </form>
+    Uploading a second CSV file will append to the table below.
+</ol>
+
+<ol start="1">
+<li> b) or, manually edit the table below, filling in group names, capacity and a description (optional) for each group. Emptying all text in a row will delete a group.
+
+<li>Students can join or leave groups until:
+<input class="group-admin-actions" id="dateFormat" placeholder="dd-mm-YYYY HH:MM" style="border-color: #1c5295;">
+<!--<span style="color:#aaa">e.g 3 April 2017 at 16:30 should be entered as: <tt>03-04-2017 16:30</tt></span>-->
+
+<li>Check the box if students are allowed to join more than one group:
+<li>Enter a category name that will be used in Brightspace: <input placeholder="e.g. Groups for Arduino workshop" style="border-color: #1c5295; width:20em">
+
+<li>Fine-tune the details in the table.
+<li>Click the "Finish the group set up" button below. <span style="color:darkorange">Note: after this click you cannot edit the details about each group.</span>
 </ol>
 <!--Once the group settings are accurate, please click the "Create empty groups" button.-->
 
@@ -67,7 +80,13 @@ Edit the table below, filling in group names, capacity and a description (option
 </ul>
 <br>
 <div class="clear "id="group-table"></div>
-Click in the cells to edit the group information. (<em>hint</em>: use the "<tt>tab</tt>" key on your keyboard to advance to the next cell)
+Click in the cells to edit the group information. (<em>hint</em>: use the "<tt>tab</tt>" key on your keyboard to advance to the next cell).
+
+
+<br><br>
+
+
+
 <br><br>
 <table style="padding:1em border-spacing:5px">
 <tr>
@@ -77,13 +96,13 @@ Click in the cells to edit the group information. (<em>hint</em>: use the "<tt>t
     </td>
     <td width="300px">
         <ul class="group-admin-actions"><li>
-        <form method="POST" action="/action/{{learner.user_ID}}/">{% csrf_token %}<input type="hidden" name="action" value='group-CSV-download'><input type="hidden" name="gfp" value="{{gfp.id}}"><button class="group-button" id="group-CSV-download" type="submit">Create empty groups</button></form>
+        <form method="POST" action="/action/{{learner.user_ID}}/">{% csrf_token %}<input type="hidden" name="action" value='group-CSV-download'><input type="hidden" name="gfp" value="{{gfp.id}}"><button class="group-button" id="group-CSV-download" type="submit">Finish the group set up</button></form>
         </li></ul>
     </td>
 </tr>
 <tr>
     <td></td>
-    <td width="300px">This is not reversible. Once clicked, the above names, capacities and descriptions cannot be adjusted.</td>
+    <td width="300px">Once you click this button the group names, capacities and descriptions are fixed, and cannot be adjusted. <em>Hint</em>: Download a CSV of these group details to save time in the future.</td>
 </tr>
 </table>
 
@@ -103,8 +122,8 @@ var tabledata = [ {% if groups %}
 
 $("#group-table").tabulator({
     columns:[
-        {title:"Group name", field:"group_name", width: 300, editable:true},
-        {title:"Maximum capacity", field:"capacity", width: 200,  align:"center",  editable:true},
+        {title:"Group name", field:"group_name", width: 200, editable:true},
+        {title:"Maximum capacity", field:"capacity", width: 150,  align:"center",  editable:true},
         {title:"Description (optional)", field:"description", align:"left",   editable:true}
     ],
     fitColumns:true,
@@ -160,7 +179,30 @@ $("#delete-row").click(function(){
 $("#download-csv").click(function(){
     $("#group-table").tabulator("download", "csv", "groups-draft-names.csv");
 });
+</script>
 
+<!-- Date/time picker; MIT licensed
+     https://chmln.github.io/flatpickr/examples/ -->
+<script>
+
+    var reg = flatpickr('#flatpickr');
+    Flatpickr.l10ns.default.firstDayOfWeek = 1;
+
+    // Custom date format
+    flatpickr('#dateFormat',
+       {dateFormat: 'd-m-Y H:i',
+        minDate: "today",
+        enableTime: true,
+        minuteIncrement: 15,
+        enabletime: true,
+        time_24hr:true,
+        timeFormat: "H:i",
+        weekNumbers: true,
+        onChange: function(dateObj, dateStr, instance)
+            {
+                alert(dateObj)
+            },
+       });
 
 </script>
 {% endblock %}
