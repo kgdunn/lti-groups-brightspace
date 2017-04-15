@@ -120,6 +120,7 @@ class Group_Formation_Process(models.Model):
     def next_id(self):
         groups = Group.objects.filter(gfp=self)
         all_orders = [g.order for g in groups]
+        all_orders.append(0)
         return (max(all_orders) + 1)
 
 
