@@ -291,12 +291,11 @@ def admin_action_process(request, action, gfp):
     elif action == 'group-CSV-upload':
         groups = [] # what we will return to the UI
         message = ''
-        now = datetime.datetime.now()
         csvfile = request.FILES.get('file_upload')
-        filename = '/tmp/tmp-csv-{0}-{1}-{2}-{3}.csv'.format(now.hour,
-                                                             now.minute,
-                                                             now.second,
-                                                             now.microsecond)
+        filename = '/tmp/tmp-csv-{0}-{1}-{2}-{3}.csv'.format(now_time.hour,
+                                                        now_time.minute,
+                                                        now_time.second,
+                                                        now_time.microsecond)
         with open(filename,'wb+') as destination:
             for chunk in csvfile.chunks():
                 destination.write(chunk)
@@ -356,6 +355,8 @@ def admin_action_process(request, action, gfp):
             for group in groups:
                 new_group = Group.objects.create(**group)
                 new_group.save()
+            logger.debug('gfp[{}]: successfully loaded the CSV at {}'.format(
+                            gfp.id, now_time))
             return None
 
     elif action == 'clear-everything':
@@ -690,10 +691,10 @@ def index(request):
 
         groups = Group.objects.filter(gfp=gfp).order_by('name').order_by('order')
         ctx = {'groups': groups, 'learner': learner, 'gfp': gfp,}
-        logger.debug('Refresh 1')
+
 
         if gfp.setup_mode or groups.count() == 0:
-            logger.debug('Refresh 2')
+
             no_groups = """
             {id:1, group_name:"Group 1 (edit this cell)",
             capacity:42, description:"Group 1 will meet in ..."},
@@ -705,7 +706,7 @@ def index(request):
                           'formation/instructor_create_groups.html',
                           ctx)
         else:
-            logger.debug('Refresh 3')
+
             _ = add_enrollment_summary(groups, learner)
             return render(original_request,
                           'formation/instructor_summary_view.html',
