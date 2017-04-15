@@ -21,10 +21,11 @@ $(document).on('click', ".group-admin-button", function() {
     })
     .success(function(html_response) {
         var html_response = ''
+        console.log('Returned with' + html_response)
         if ($(this)[0].id == 'clear-everything'){
             setTimeout(function() {
     location.reload();  //Refresh page
-  }, 1000);
+  }, 5000);
 
         }
         else if($(this)[0].id == 'group-CSV-upload'){setTimeout(function() {
