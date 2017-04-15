@@ -1,6 +1,6 @@
 from django import __version__
 from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.conf import settings
@@ -652,8 +652,7 @@ def index(request):
         if error_message.getvalue():
             return HttpResponse(error_message)
         else:
-            # Return them back to this function, a second time, to continue on.
-            return HttpResponseRedirect('/')
+            pass # continue on
 
 
     person_or_error, course, gfp = starting_point(request)
