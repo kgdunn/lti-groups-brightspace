@@ -15,6 +15,7 @@ from stats.views import create_hit, get_IP_address
 from collections import namedtuple, defaultdict
 import datetime
 import json
+import time
 import csv
 import codecs
 
@@ -351,6 +352,7 @@ def admin_action_process(request, action, gfp):
         # Without prompting, delete everything for this gfp:
         Group.objects.filter(gfp=gfp).delete()
         Tracking.objects.filter(gfp=gfp).delete()
+        time.sleep(1) # prevents a race condition occurring
         return HttpResponse('Please reload GO AWAY 2.'  + str(now_time))
     elif action == 'date-update':
         datestring = request.POST.get('datestring', '2050-12-31 23:59:59')
