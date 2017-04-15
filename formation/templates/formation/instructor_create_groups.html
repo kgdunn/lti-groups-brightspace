@@ -14,7 +14,7 @@ $(document).on('click', ".group-admin-button", function() {
                     'gfp': {{gfp.id}},};
     $.ajax({
         method: "POST",
-        url: '/action/{{learner.user_ID}}/',
+        url: '/',
         data: postdata,
         cache: false,
         context: $(this),
@@ -22,8 +22,8 @@ $(document).on('click', ".group-admin-button", function() {
     })
     .always(function(html_response) {
         console.log('Returned with' + html_response);
-        if (timer){window.clearTimeout(timer); };
-        timer = window.setTimeout( function() { location.reload(); alert('Reloaded')  }, 500);
+        <!--if (timer){window.clearTimeout(timer); };-->
+        <!--timer = window.setTimeout( function() { location.reload(); alert('Reloaded')  }, 500);-->
     });
 
 });
