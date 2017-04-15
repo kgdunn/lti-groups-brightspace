@@ -647,7 +647,7 @@ def index(request):
     if original_request.FILES.get('file_upload', '') and \
                                           original_request.POST.get('Upload'):
         error_message = process_action(original_request,
-                                       original_request.POST.get('learner', ''))
+                                       original_request.POST.get('user_ID', ''))
         if error_message.getvalue():
             return HttpResponse(error_message)
         else:
