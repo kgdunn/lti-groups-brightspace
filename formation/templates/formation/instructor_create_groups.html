@@ -14,17 +14,17 @@ $(document).on('click', ".group-admin-button", function() {
                     'gfp': {{gfp.id}},};
     $.ajax({
         method: "POST",
-        url: '/',
+        url: '/action/{{learner.user_ID}}/',
         data: postdata,
         cache: false,
         context: $(this),
         dataType: 'html'
     })
-    .always(function(html_response) {
+    .always(function(html_response, postdata) {
         console.log('Returned with' + html_response);
-        <!--if (timer){window.clearTimeout(timer); };-->
-        <!--timer = window.setTimeout( function() { location.reload(); alert('Reloaded')  }, 500);-->
+        setTimeout(function() { location.reload(); }, 2000);
     });
+
 
 });
 $(document).ready(function() {

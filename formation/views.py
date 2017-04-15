@@ -84,7 +84,6 @@ def process_action(request, user_ID):
     # Now we can split off for students vs. instructors, to keep this function
     # overzichtelijk
     if learner.role == 'Admin':
-        time.sleep(1) # prevents a race condition occurring
         return admin_action_process(request, action, gfp)
 
 
