@@ -22,7 +22,7 @@ $(document).on('click', ".group-admin-button", function() {
     })
     .always(function(html_response, postdata) {
         console.log('Returned with' + html_response);
-        setTimeout(function() { location.reload(); }, 200);
+        setTimeout(function() { location.reload(); }, 100);
     });
 });
 $(document).ready(function() {
@@ -69,13 +69,14 @@ $(document).ready(function() {
 Create groups for self-enrollment in 6 steps:
 <ol class="instructor-groups">
 <li> a) Either upload a CSV (comma-separated values) file with the information shown in the table. Here is <a href="//lti.connectmv.com/images/group-formation-template-brightspace.csv">a template to start from</a>. This approach is useful if you have many groups to upload.
-    <form method="POST" action="/action/{{learner.user_ID}}/" enctype="multipart/form-data">
+    <form method="POST" action="#" enctype="multipart/form-data">
         {% csrf_token %}
         <input type="hidden" name="action" value='group-CSV-upload'>
+        context_id
+        resource_link_id
         <input type="hidden" name="learner" value="{{learner.user_ID}}">
         <input type="hidden" name="gfp" value="{{gfp.id}}">
-        <!--<label for="id_file_upload">Please upload your CSV file:</label>-->
-        <input id="id_file_upload" initial_text="Please upload your CSV file" name="file_upload" type="file" required="" style="display: inline">
+        <input id="id_file_upload" initial_text="Please upload your CSV file" name="file_upload" type="file" required="" accept=".csv" style="display: inline">
         <input type="submit" name="Upload">
 
     </form>

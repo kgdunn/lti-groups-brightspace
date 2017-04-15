@@ -302,8 +302,8 @@ def admin_action_process(request, action, gfp):
                 destination.write(chunk)
 
         if b'ASCII' not in magic.from_file(filename) :
-            return HttpResponse(('Invalid, or unreadable file. '
-                                 'It was not a CSV file.'))
+            return HttpResponse(('Invalid, or unreadable file. It was not a '
+                                 'CSV file. Reload the page to try again.'))
 
 
         with open(filename, 'rt') as csvfile:
@@ -356,7 +356,7 @@ def admin_action_process(request, action, gfp):
             for group in groups:
                 new_group = Group.objects.create(**group)
                 new_group.save()
-            return HttpResponse('Please reload GO AWAY 1.')
+            return None
 
     elif action == 'clear-everything':
         # Without prompting, delete everything for this gfp:
@@ -636,6 +636,18 @@ def index(request):
     if request.method != 'POST' and (len(request.GET.keys())==0):
         return HttpResponse("This is the Brightspace Groups LTI component.")
 
+    # Special case: instructor is uploading a CSV file
+    if original_request.FILES.get('file_upload', '') and \
+                                          original_request.POST.get('Upload'):
+        error_message = process_action(original_request,
+                                       original_request.POST.get('learner', ''))
+        if error_message:
+            return HttpResponse(error_message)
+        else:
+            # Return them back to this function, a second time, to continue on.
+            return HttpResponseRedirect('')
+
+
     person_or_error, course, gfp = starting_point(request)
 
     if not(isinstance(person_or_error, Person)):
@@ -683,8 +695,8 @@ def index(request):
         if gfp.setup_mode or groups.count() == 0:
             logger.debug('Refresh 2')
             no_groups = """
-            {id:1, group_name:"Group 1 (created if there are no groups)",
-            capacity:12, description:"Group 1 will ..."},
+            {id:1, group_name:"Group 1 (edit this cell)",
+            capacity:42, description:"Group 1 will meet in ..."},
             """
 
             if groups.count() == 0:
