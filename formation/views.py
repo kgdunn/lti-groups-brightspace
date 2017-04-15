@@ -252,6 +252,7 @@ def admin_action_process(request, action, gfp):
     # These action occur when admin is setting up groups
 
     elif action == 'row-update':
+        message = ''
         group_name = request.POST.get('group_name', '')
         group_description = request.POST.get('group_description', '')
         group_capacity = request.POST.get('group_capacity', 0)
@@ -260,6 +261,7 @@ def admin_action_process(request, action, gfp):
             group_capacity = int(group_capacity)
         except ValueError:
             group_capacity = 0
+            message = "Invalid value entered in the Group's capacity column."
 
 
         group = Group.objects.filter(gfp=gfp, order=group_id)
@@ -277,7 +279,8 @@ def admin_action_process(request, action, gfp):
         group.save()
 
 
-        message = 'Last saved at {}'.format(now_time.strftime('%H:%M:%S'))
+        message = message or 'Last saved at {}'.format(
+                                                 now_time.strftime('%H:%M:%S'))
         if group.name == '' and group.capacity==0 and group.description == '':
             group.delete()
             message = 'Group deleted. {}'.format(now_time.strftime('%H:%M:%S'))

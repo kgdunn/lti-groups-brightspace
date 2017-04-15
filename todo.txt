@@ -1,30 +1,18 @@
 Groups TODO
 --------
 
-Clear button: refreshes?
+
 CSV upload: afters it should force an auto refresh
-Push back settings that already exist
-
 Student view when there are no groups.
-
 Instructor view if no groups pushed through
-
-
 Show the actual enrollments in a group
-
 View as student
-
-
 Upload CSV template with students in the list
 Remove the other admin view and consolidate everything into the table?
-
-
 If you are an instructor, but in student mode: indicate that action is recorded
 but nothing has happened (not actually enrolled).
 
-
 Admin table:
-* Maximum capacity: error on non-integer
 * Reorder row: call the function, and reorder all rows in the database
 * but then process teh group id's again
 $("#example-table").tabulator({
@@ -39,12 +27,10 @@ $("#example-table").tabulator({
 
 
 Can be prefilled:
-Longer term: waitlist
+Longer term TODO: waitlist functionality
+
 Import names from CSV
 
-The "The cut-off date and time to join, or leave, a" shows in Admin view in my sandbox
-
-Handle : view as student in an appropriate way
 What happens to a ``Person`` between two different course instances?
 LoggingGS
 
