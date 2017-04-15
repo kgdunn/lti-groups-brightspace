@@ -300,7 +300,9 @@ def admin_action_process(request, action, gfp):
             for chunk in csvfile.chunks():
                 destination.write(chunk)
 
-        if b'ASCII' not in magic.from_file(filename) :
+        filetype_sniff = magic.from_file(filename)
+        if (b'ASCII' not in filetype_sniff) and (b'ISO-8859 text' not in\
+                                                               filetype_sniff):
             return HttpResponse(('Invalid, or unreadable file. It was not a '
                                  'CSV file. Reload the page to try again.'))
 
@@ -345,7 +347,10 @@ def admin_action_process(request, action, gfp):
 
 
         if message:
-            message = '<br>'.join(set(message.split('<br>')))
+            seen = set()
+            seen_add = seen.add
+            message = '<br>'.join([x for x in message.split('<br>') if not \
+                                               (x in seen or seen_add(x))])
             # gets the unique elements only
             message += ('<br>Please refresh this page and load an improved '
                         'version of the CSV file.')
