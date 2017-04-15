@@ -419,8 +419,7 @@ def get_create_student(request, course, gfp):
     if 'Instructor' in POST_role:
         role = 'Admin'
 
-    learner, newbie = Person.objects.get_or_create(email=email,
-                                                   user_ID=user_ID,
+    learner, newbie = Person.objects.get_or_create(user_ID=user_ID,
                                                    role=role)
 
     if newbie:

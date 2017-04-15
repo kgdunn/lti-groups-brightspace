@@ -25,6 +25,13 @@ $("#example-table").tabulator({
 });
 
 
+Would it be possible to spoof the system if you POST requested with
+* role='Admin'
+* some made up user_ID
+* context_id that matched the course (easily figured out)
+* LTI_ID (relatively easy to figure out)
+and what if you did this after a TA had set up the groups?
+
 
 Can be prefilled:
 Longer term TODO: waitlist functionality
