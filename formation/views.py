@@ -326,8 +326,7 @@ def admin_action_process(request, action, gfp):
 
                     continue
 
-                group = {'gfp': gfp,
-                         'order': gfp.next_id()}
+                group = {'gfp': gfp,}
                 for idx, cell in enumerate(row):
                     try:
                         group[mapper[idx]] = str.strip(cell)
@@ -360,8 +359,8 @@ def admin_action_process(request, action, gfp):
         else:
             # Only do this at the end; if the CSV was successfully read
             for group in groups:
-                new_group = Group.objects.create(**group)
-                new_group.save()
+                new_group = Group.objects.get_or_create(**group)
+
             logger.debug('gfp[{}]: successfully loaded the CSV at {}'.format(
                             gfp.id, now_time))
             return HttpResponse(b'')
@@ -370,6 +369,15 @@ def admin_action_process(request, action, gfp):
         # Without prompting, delete everything for this gfp:
         Group.objects.filter(gfp=gfp).delete()
         Tracking.objects.filter(gfp=gfp).delete()
+        gfp.dt_group_selection_stops = datetime.datetime(2050, 12, 31,
+                                                         23, 59, 59, 999999)
+        gfp.setup_mode = True
+        gfp.allow_multi_enrol = False
+        gfp.show_fellows = False
+        gfp.has_been_pushed = False
+        gfp.save()
+
+
 
         return HttpResponse('Please reload GO AWAY 2.'  + str(now_time))
     elif action == 'date-update':
@@ -644,14 +652,15 @@ def index(request):
         return HttpResponse("This is the Brightspace Groups LTI component.")
 
     # Special case: instructor is uploading a CSV file
-    if original_request.FILES.get('file_upload', '') and \
-                                          original_request.POST.get('Upload'):
+    if original_request.FILES.get('file_upload', ''):
+
         error_message = process_action(original_request,
                                        original_request.POST.get('user_ID', ''))
         if error_message.getvalue():
             return HttpResponse(error_message)
         else:
-            pass # continue on
+            original_request.FILES['file_upload'] = None
+
 
 
     person_or_error, course, gfp = starting_point(request)

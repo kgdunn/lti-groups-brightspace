@@ -79,10 +79,6 @@ class Group_Formation_Process(models.Model):
         help_text=('If True, the student can be in more than 1 group in this '
                    'category.'))
 
-    #allow_unenroll = models.BooleanField(default=True,
-    #    help_text=('Can learners unenroll, which implies they will also be '
-    #               'allowed to re-enroll, until the close off date/time.'))
-
     show_fellows = models.BooleanField(default=False,
         help_text=('Can learners see the FirstName LastName of the other '
                    'people enrolled in their groups.'))
@@ -117,12 +113,6 @@ class Group_Formation_Process(models.Model):
     def __str__(self):
         return 'GFP[{0}]::[{1}]'.format(self.course.label, self.LTI_id)
 
-    def next_id(self):
-        groups = Group.objects.filter(gfp=self)
-        all_orders = [g.order for g in groups]
-        all_orders.append(0)
-        return (max(all_orders) + 1)
-
 
 @python_2_unicode_compatible
 class Group(models.Model):
@@ -140,6 +130,14 @@ class Group(models.Model):
 
     def __str__(self):
         return u'{0}'.format(self.name)
+
+    def save(self, *args, **kwargs):
+        groups = Group.objects.filter(gfp=self.gfp)
+        all_orders = [g.order for g in groups]
+        all_orders.append(0)
+        self.order = (max(all_orders) + 1)
+        super(Group, self).save(*args, **kwargs)
+
 
 
 class Enrolled(models.Model):
