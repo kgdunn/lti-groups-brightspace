@@ -97,7 +97,7 @@ class Group_Formation_Process(models.Model):
     #    help_text='Usually the same as above date/time, but can be later', )
 
     dt_group_selection_stops = models.DateTimeField(
-        default=datetime.datetime(2050, 12, 31, 23, 59, 59, 999999),
+        default=None, blank=True, null=True,
         verbose_name=('When does group enrolment stop?'))
 
 
