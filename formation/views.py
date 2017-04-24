@@ -369,8 +369,7 @@ def admin_action_process(request, action, gfp):
         # Without prompting, delete everything for this gfp:
         Group.objects.filter(gfp=gfp).delete()
         Tracking.objects.filter(gfp=gfp).delete()
-        gfp.dt_group_selection_stops = datetime.datetime(2050, 12, 31,
-                                                         23, 59, 59, 999999)
+        gfp.dt_group_selection_stops = None
         gfp.setup_mode = True
         gfp.allow_multi_enrol = False
         gfp.show_fellows = False
@@ -381,7 +380,7 @@ def admin_action_process(request, action, gfp):
 
         return HttpResponse('Please reload GO AWAY 2.'  + str(now_time))
     elif action == 'date-update':
-        datestring = request.POST.get('datestring', '2050-12-31 23:59:59')
+        datestring = request.POST.get('datestring', None)
         try:
             dt_stop = datetime.datetime.strptime(datestring, "%d-%m-%Y %H:%M")
         except ValueError:
