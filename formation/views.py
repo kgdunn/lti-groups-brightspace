@@ -369,6 +369,7 @@ def admin_action_process(request, action, gfp):
         # Without prompting, delete everything for this gfp:
         Group.objects.filter(gfp=gfp).delete()
         Tracking.objects.filter(gfp=gfp).delete()
+        gfp.title = ''
         gfp.dt_group_selection_stops = None
         gfp.setup_mode = True
         gfp.allow_multi_enrol = False
