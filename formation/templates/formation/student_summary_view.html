@@ -19,12 +19,15 @@ $(document).on('click', "a.group-click", function() {
         $('#group-extra-info-XHR').html(html_response);
         setTimeout(function() { location.reload(); }, 2000);
     });
-        
-    
+
+
 });
 $( document ).ready(function() {
     {% if hide_columns.description %}
         $('td:nth-child(2),th:nth-child(2)').hide();
+    {% endif %}
+    {% if hide_columns.join_group %}
+        $('td:nth-child(4),th:nth-child(4)').hide();
     {% endif %}
     {% if hide_columns.leave_group %}
         $('td:nth-child(5),th:nth-child(5)').hide();
@@ -63,12 +66,12 @@ $( document ).ready(function() {
                <a href="#" class="group-click group-enrol" id="{{group.id}}">Join</a>
                  {%if is_enrolled_already and not gfp.allow_multi_enrol%}*{%endif%}
             {%else%}
-                
+
             {% endif %}</td>
-        
+
         <td class="group-col-center">
             {% if group.unenrol_link %}<a href="#" class="group-click group-unenrol" id="{{group.id}}">Leave</a>{% endif %}</td>
-            
+
         <td class="group-col-center">
             {% if group.waitlist_link %}<a href="#" class="group-click group-add-waitlist" id="{{group.id}}">Add myself to waitlist</a>{% endif %}</td>
     </tr>

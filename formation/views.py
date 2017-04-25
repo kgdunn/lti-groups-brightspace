@@ -609,6 +609,7 @@ def add_enrol_unenrol_links(groups, learner=None, is_enrolled_already=False):
     hide_description = True
     hide_join_waitlist = True
     hide_leave_group = True
+    hide_join_group = False
 
     for group in groups:
         if group.description:
@@ -638,9 +639,14 @@ def add_enrol_unenrol_links(groups, learner=None, is_enrolled_already=False):
             # Rows 5, 6, 7 and 8 for column C and y3
             group.waitlist_link = False
 
+    # This case is only true in these circumstances
+    if is_enrolled_already and (group.gfp.allow_multi_enrol == False):
+        hide_join_group = True
+
     return {'description': hide_description,
             'join_waitlist': hide_join_waitlist,
-            'leave_group': hide_leave_group}
+            'leave_group': hide_leave_group,
+            'join_group': hide_join_group}
 
 
 

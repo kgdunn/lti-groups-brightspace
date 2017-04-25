@@ -5,7 +5,6 @@ Uploading CSV creates multiple groups.
 Duplicated names showed up when editing
 Hide the "Add yourself" column if not needed
 Provide link to list of students currently in a group
-Show full names in CSV export. Keep first, last and display
 Note to student: prior to deadline the names are not in Brightspace
 Create a student overview page
 
