@@ -1,8 +1,22 @@
 Groups TODO
 --------
 
+Uploading CSV creates multiple groups.
+Step 4 : "May 05 Workshop" only retains "May"
+Before entering groups to DB: students cannot enrol during setup mode
+Duplicated names showed up when editing
+Hide the "Add yourself" column if not needed
+Provide link to list of students currently in a group
+Show full names in CSV export. Keep first, last and display
+Note to student: prior to deadline the names are not in Brightspace
+Create a student overview page
+
+
+
 Fault sequence: load page; load CSV; click Clear; it loads a CSV??
 
+
+Student view: show asterisk for the group they are currently enrolled in
 
 
 Error message if a CSV is blank, or only contains a single row

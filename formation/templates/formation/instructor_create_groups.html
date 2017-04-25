@@ -97,9 +97,9 @@ Create groups for self-enrollment in 6 steps:
 <ol start="2" class="instructor-groups"><li> Students can join or leave groups until:
 <input class="group-admin-actions" id="dateFormat" placeholder="dd-mm-YYYY HH:MM" style="border-color: #1c5295; margin-left: 5px" value="{{gfp.dt_group_selection_stops|date:"d-m-Y"}} {{gfp.dt_group_selection_stops|time:"H:i"}}"> (format: dd-mm-YYYY HH:MM)
 
-<li> May students join more than one group? <input class="group-XHR-update" type="checkbox" name="multi_group" value="multi_group_yes" style="border-color: #1c5295; transform: scale(1.5); margin-left: 5px"  {%if gfp.allow_multi_enrol%}checked{%endif%}/>
+<li> May students join more than one group in this category? <input class="group-XHR-update" type="checkbox" name="multi_group" value="multi_group_yes" style="border-color: #1c5295; transform: scale(1.5); margin-left: 5px"  {%if gfp.allow_multi_enrol%}checked{%endif%}/>
 
-<li>The category name to be used in Brightspace: <input class="group-XHR-update" id="category_name" name="category_name" placeholder="e.g. Groups for Arduino workshop" style="border-color: #1c5295; width:20em; margin-left: 5px" value={{gfp.title}}></input>
+<li>The category name to be used in Brightspace: <input class="group-XHR-update" id="category_name" name="category_name" placeholder="e.g. Groups for Arduino workshop" style="border-color: #1c5295; width:20em; margin-left: 5px" value="{{gfp.title}}"></input>
 
 <li>Fine-tune the details in the table. Refreshing this page will confirm the latest setting in our database.
 <li>Click on the "Finish setting up the groups" button below. <span style="color:darkorange">Note: after this click you cannot change the details about each group.</span>
@@ -124,6 +124,20 @@ Create groups for self-enrollment in 6 steps:
 <tr>
     <td width="300px">Once you click this button the group names, capacities and descriptions are fixed, and cannot be adjusted. <em>Hint</em>: Download a CSV of these group details to save time in the future.</td>
     <td width="300px">
+
+WORK ON THIS STILL:
+
+dont' allow to push until a date/time has been added.
+
+    <div class="group-admin-button" id='finish-setup' style="float: right">
+        <ul class="group-admin-actions">
+        <li>
+        <input type="hidden" name="gfp" value="{{gfp.id}}"><button class="group-button" id="clear-everything" type="submit">Finish setting up the groups</button>
+        </li></ul>
+</div>
+
+
+
         <ul class="group-admin-actions"><li>
         <form method="POST" action="/action/{{learner.user_ID}}/">{% csrf_token %}<input type="hidden" name="action" value='group-CSV-download'><input type="hidden" name="gfp" value="{{gfp.id}}"><button class="group-button" id="group-CSV-download" type="submit">Finish setting up the groups</button></form>
         </li></ul>
