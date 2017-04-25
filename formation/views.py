@@ -411,6 +411,10 @@ def admin_action_process(request, action, gfp):
             message = 'ERROR: Please provide a category title in step 4.'
             return HttpResponse(message)
 
+        elif Group.objects.filter(gfp=gfp).count() == 0:
+            message = 'ERROR: Please specify at least 1 valid group.'
+            return HttpResponse(message)
+
         else:
             gfp.setup_mode = False
             gfp.save()
@@ -433,7 +437,9 @@ def get_create_student(request, course, gfp):
     newbie = False
 
     email = request.POST.get('lis_person_contact_email_primary', '')
-    display_name = request.POST.get('lis_person_name_full', '')
+    display_name = request.POST.get('lis_person_name_family', '')
+    person_firstname = request.POST.get('lis_person_name_full', '')
+    person_lastname = request.POST.get('lis_person_name_given', '')
     user_ID = request.POST.get('user_id', '')
     POST_role = request.POST.get('roles', '')
 
@@ -450,6 +456,8 @@ def get_create_student(request, course, gfp):
                        user=learner, other_info='gfp.id={0}'.format(gfp.id),
                        other_info_id=gfp.id)
         learner.display_name = display_name
+        learner.person_firstname = person_firstname
+        learner.person_lastname = person_lastname
         learner.save()
         logger.info('New learner: {0} [{1}]'.format(learner.display_name,
                                                     learner.email))
@@ -652,10 +660,10 @@ def index(request):
                         #'roles': (u'urn:lti:instrole:ims/lis/Instructor,Admin,'
                         #           'urn:lti:instrole:ims/lis/Admin,Admin'),
                         'roles': u'Instructor',
-                        #'roles': u'Student',
-                        'lis_person_contact_email_primary': 'kgdunn@gmail.com1',
+                        'roles': u'Student',
+                        'lis_person_contact_email_primary': 'kgdunn@gmail.com2',
                         'lis_person_name_full': 'Kevin Dunn',
-                        'user_id': '01a7b8a9-f1c9-430d-b7d9-eca804cbde10_701',
+                        'user_id': '01a7b8a9-f1c9-430d-b7d9-eca804cbde10_702',
                         }
 
         request.META = {'REMOTE_ADDR': '127.0.0.1'}
@@ -690,6 +698,13 @@ def index(request):
     # Do the work here; Return the HTTP Response
     if learner.role == 'Student':
         # Get them alphabetically, and then within the fixed order specified
+
+        if (gfp.setup_mode):
+            ctx = {'message': ('The instructor has not completed the group '
+                                 'set up process. Please return later.')}
+            return render(original_request,
+                                  'formation/student_not_setup_yet.html', ctx)
+
         groups = Group.objects.filter(gfp=gfp).order_by('name').order_by('order')
         is_enrolled_already, joined = add_enrollment_summary(groups, learner)
 
