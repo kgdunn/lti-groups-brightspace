@@ -90,7 +90,8 @@ def process_action(request, user_ID):
     # Check if group formation is still allowed. The user can have the link
     # from a time prior to the cut-off. If they click that link afterward
     # the cut-off they are told they cannot enrol.
-    if (timezone.now() > gfp.dt_group_selection_stops):
+    if (gfp.dt_group_selection_stops) and \
+                                (timezone.now() > gfp.dt_group_selection_stops):
         return HttpResponse(('The cut-off date and time to join, or leave, a '
                              'group has passed.'))
 
@@ -404,6 +405,20 @@ def admin_action_process(request, action, gfp):
         return HttpResponse(message)
 
 
+    elif action == 'finish-setup':
+        message = ''
+        if gfp.title == '':
+            message = 'ERROR: Please provide a category title in step 4.'
+            return HttpResponse(message)
+
+        else:
+            gfp.setup_mode = False
+            gfp.save()
+
+        message = 'Set up completed: {}'.format(
+                                                 now_time.strftime('%H:%M:%S'))
+
+        return HttpResponse(message)
 
 
     # end: if-elif-elif-elif-...

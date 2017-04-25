@@ -11,7 +11,8 @@ $(document).on('click', ".group-admin-button", function() {
     var timer = null;
     var postdata = {'csrfmiddlewaretoken': '{{ csrf_token }}',
                     'action': $(this).attr('id'),
-                    'gfp': {{gfp.id}},};
+                    'gfp': {{gfp.id}},
+                    'all_table_data': $("#group-table").tabulator("getData")};
     $.ajax({
         method: "POST",
         url: '/action/{{learner.user_ID}}/',
@@ -21,8 +22,13 @@ $(document).on('click', ".group-admin-button", function() {
         dataType: 'html'
     })
     .always(function(html_response, postdata) {
-        console.log('Returned with' + html_response);
-        setTimeout(function() { location.reload(); }, 100);
+        if (html_response.substring(0,5) == "ERROR"){
+            $('.group-creation-feedback').fadeIn()
+            $('.group-creation-feedback').html(html_response).fadeOut(5000);
+
+        }else{
+            setTimeout(function() { location.reload(); }, 100);
+        }
     });
 });
 $(document).ready(function() {
@@ -125,10 +131,6 @@ Create groups for self-enrollment in 6 steps:
     <td width="300px">Once you click this button the group names, capacities and descriptions are fixed, and cannot be adjusted. <em>Hint</em>: Download a CSV of these group details to save time in the future.</td>
     <td width="300px">
 
-WORK ON THIS STILL:
-
-dont' allow to push until a date/time has been added.
-
     <div class="group-admin-button" id='finish-setup' style="float: right">
         <ul class="group-admin-actions">
         <li>
@@ -139,7 +141,7 @@ dont' allow to push until a date/time has been added.
 
 
         <ul class="group-admin-actions"><li>
-        <form method="POST" action="/action/{{learner.user_ID}}/">{% csrf_token %}<input type="hidden" name="action" value='group-CSV-download'><input type="hidden" name="gfp" value="{{gfp.id}}"><button class="group-button" id="group-CSV-download" type="submit">Finish setting up the groups</button></form>
+        <!--<form method="POST" action="/action/{{learner.user_ID}}/">{% csrf_token %}<input type="hidden" name="action" value='group-CSV-download'><input type="hidden" name="gfp" value="{{gfp.id}}"><button class="group-button" id="group-CSV-download" type="submit">Finish setting up the groups</button></form>-->
         </li></ul>
     </td>
 </tr>
@@ -194,10 +196,7 @@ $("#group-table").tabulator({
             $('.group-creation-feedback').fadeIn()
             $('.group-creation-feedback').html(html_response).fadeOut(3000);
         });
-
-
     },
-
 });
 $("#group-table").tabulator("setData", tabledata);
 $(window).resize(function(){
