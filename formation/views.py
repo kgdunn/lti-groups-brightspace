@@ -674,10 +674,10 @@ def index(request):
                         #'roles': (u'urn:lti:instrole:ims/lis/Instructor,Admin,'
                         #           'urn:lti:instrole:ims/lis/Admin,Admin'),
                         'roles': u'Instructor',
-                        'roles': u'Student',
-                        'lis_person_contact_email_primary': 'kgdunn@gmail.com2',
+                        #'roles': u'Student',
+                        'lis_person_contact_email_primary': 'kgdunn@gmail.com1',
                         'lis_person_name_full': 'Kevin Dunn',
-                        'user_id': '01a7b8a9-f1c9-430d-b7d9-eca804cbde10_702',
+                        'user_id': '01a7b8a9-f1c9-430d-b7d9-eca804cbde10_701',
                         }
 
         request.META = {'REMOTE_ADDR': '127.0.0.1'}
@@ -693,6 +693,7 @@ def index(request):
 
         error_message = process_action(original_request,
                                        original_request.POST.get('user_ID', ''))
+        original_request.FILES['file_upload'].close()
         if error_message.getvalue():
             return HttpResponse(error_message)
         else:

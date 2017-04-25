@@ -42,7 +42,7 @@ $( document ).ready(function() {
 
 {% block content %}
 <h3>{{gfp.title}}</h3>
-<div id="group-header-info" style="font-size:1.3em">{% if gfp.dt_group_selection_stops %}Join or leave these groups until: {{gfp.dt_group_selection_stops|date:"d F Y"}} {{gfp.dt_group_selection_stops|time:"H:i"}}{%endif%}. These groups will not show up in Brightspace until the instructor has finalized the group selection.</div>
+<div id="group-header-info" style="font-size:1.3em">{% if gfp.dt_group_selection_stops %}Join or leave these groups until {{gfp.dt_group_selection_stops|date:"d F Y"}} {{gfp.dt_group_selection_stops|time:"H:i"}}{%endif%}.<br>These groups will not show up in Brightspace until the instructor has finalized the group selection.</div>
 
 <div id="group-extra-info-XHR" style="color:orange">&nbsp;</div>
 
