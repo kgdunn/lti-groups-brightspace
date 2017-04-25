@@ -261,7 +261,7 @@ def admin_action_process(request, action, gfp):
             group_capacity = int(group_capacity)
         except ValueError:
             group_capacity = 0
-            message = "Invalid value entered in the Group's capacity column."
+            #message = "Invalid value entered in the Group's capacity column."
 
 
         group = Group.objects.filter(gfp=gfp, order=group_id)

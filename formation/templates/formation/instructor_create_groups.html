@@ -181,6 +181,7 @@ $("#group-table").tabulator({
                         'group_capacity': row_data['capacity'],
                         'group_name': row_data['group_name'],
                         };
+        if (row_data['capacity'] == ''){}
         $.ajax({
             method: "POST",
             url: '/action/{{learner.user_ID}}/',

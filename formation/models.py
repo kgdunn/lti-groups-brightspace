@@ -132,10 +132,12 @@ class Group(models.Model):
         return u'{0}'.format(self.name)
 
     def save(self, *args, **kwargs):
-        groups = Group.objects.filter(gfp=self.gfp)
-        all_orders = [g.order for g in groups]
-        all_orders.append(0)
-        self.order = (max(all_orders) + 1)
+
+        # Don't overwrite the ID: let the table form it.
+        #groups = Group.objects.filter(gfp=self.gfp)
+        #all_orders = [g.order for g in groups]
+        #all_orders.append(0)
+        #self.order = (max(all_orders) + 1)
         super(Group, self).save(*args, **kwargs)
 
 
