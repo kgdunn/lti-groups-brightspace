@@ -9,6 +9,7 @@ Show full names in CSV export. Keep first, last and display
 Note to student: prior to deadline the names are not in Brightspace
 Create a student overview page
 
+Going from instructor, to student, then back to student throws the system into confusion.
 
 
 Fault sequence: load page; load CSV; click Clear; it loads a CSV??

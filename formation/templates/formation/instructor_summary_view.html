@@ -77,7 +77,7 @@ $(document).on('click', ".group-admin-button", function() {
 <tbody>
 {% for group in groups %}
     <tr class="group-{% cycle 'odd' 'even' %}">
-        <td>{% if group.n_enrolled %}<a href="#" class="group-info-click" id="{{group.id}}">{{group.name}}</a>{% else %}{{group.name}}{% endif %}</td>
+        <td>{{group.name}} {% if group.n_enrolled %}<a href="#" class="group-info-click" id="{{group.id}}"></a>{% else %}{% endif %}</td>
         <td>{{group.description}}</td>
         <td class="group-col-center">{{group.capacity}}</td>
         <td class="group-col-center">{{group.n_enrolled}}</td>
