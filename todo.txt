@@ -2,8 +2,6 @@ Groups TODO
 --------
 
 Uploading CSV creates multiple groups.
-Step 4 : "May 05 Workshop" only retains "May"
-Before entering groups to DB: students cannot enrol during setup mode
 Duplicated names showed up when editing
 Hide the "Add yourself" column if not needed
 Provide link to list of students currently in a group

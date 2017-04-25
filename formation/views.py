@@ -231,10 +231,18 @@ def admin_action_process(request, action, gfp):
         response['Content-Disposition'] = 'attachment; filename="{0}"'.format(
                                                                        filename)
         writer = csv.writer(response)
-        writer.writerow(['Student identifier', 'Group name', 'Final result'])
+        writer.writerow(['Student identifier',
+                         'Student first name',
+                         'Student last name',
+                         'Group name',
+                         'Last enrollment decision'])
         for student, results in raw_data.items():
             for group_key, action in results.items():
-                writer.writerow([student.email, group_key.name, action])
+                writer.writerow([student.email,
+                                 student.person_firstname,
+                                 student.person_lastname,
+                                 group_key.name,
+                                 action])
         return response
 
     elif action == 'group-push-enrollment':
