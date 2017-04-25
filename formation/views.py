@@ -445,9 +445,9 @@ def get_create_student(request, course, gfp):
     newbie = False
 
     email = request.POST.get('lis_person_contact_email_primary', '')
-    display_name = request.POST.get('lis_person_name_family', '')
-    person_firstname = request.POST.get('lis_person_name_full', '')
-    person_lastname = request.POST.get('lis_person_name_given', '')
+    display_name = request.POST.get('lis_person_name_full', '')
+    person_firstname = request.POST.get('lis_person_name_given', '')
+    person_lastname = request.POST.get('lis_person_name_family', '')
     user_ID = request.POST.get('user_id', '')
     POST_role = request.POST.get('roles', '')
 

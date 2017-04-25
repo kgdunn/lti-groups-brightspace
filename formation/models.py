@@ -13,10 +13,10 @@ class Person(models.Model):
     email = models.EmailField(blank=False)
     student_number = models.CharField(max_length=15, blank=True, default='')
 
-    # Brightspace: lis_person_name_family
+    # Brightspace: lis_person_name_given
     person_firstname = models.CharField(max_length=100, blank=True, default='')
 
-    # Brightspace: lis_person_name_given
+    # Brightspace: lis_person_name_family
     person_lastname = models.CharField(max_length=100, blank=True, default='')
 
     # Brightspace: lis_person_name_full
